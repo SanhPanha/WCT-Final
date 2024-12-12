@@ -1,0 +1,5 @@
+User-Agent: *
+Allow: /
+Disallow: /private/
+Disallow:/Dashboard
+Sitemap: https://optimizing-seven.vercel.app/sitemap.xml
