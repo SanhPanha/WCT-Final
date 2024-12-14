@@ -15,8 +15,6 @@ export const makeStore = () => {
         auth:tokenSlice,
         cart:cartSlice,
         userProfile:userSlice
-       
-        
     },
     middleware: (getDefaultMiddleware) =>getDefaultMiddleware().concat(productApi.middleware)
   })

@@ -16,4 +16,5 @@ export const { handlers: {GET, POST}, auth, signIn, signOut} = NextAuth  ({
         clientId: process.env.NEXT_PUBLIC_FACEBOOK_CLIENT_ID as string,
         clientSecret: process.env.NEXT_PUBLIC_FACEBOOK_SECRET as string
       })
-     ],})
+     ],
+})

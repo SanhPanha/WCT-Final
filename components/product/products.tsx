@@ -1,62 +1,78 @@
-'use client'
-import React, { useEffect, useState } from 'react'
-import { ProductType } from '@/lib/constans'
-import { useRouter } from 'next/navigation'
-import CardComponent from './cardcomponent'
-import { useGetAllProductsQuery } from '@/redux/service/product'
-import products from '@/mock/products.json'
+'use client';
+import React, { useEffect, useState } from 'react';
+import { ProductType } from '@/lib/constans';
+import { useRouter } from 'next/navigation';
+import CardComponent from './cardcomponent';
+import app from "../../lib/firebaseConfiguration";
+import { getDatabase, ref, get } from "firebase/database";
 
 export default function Products() {
-//   const[products,setProduct]=useState<ProductType[]>([])
-  const[currentPage,setCurrentPage] = useState(1)
-  const router = useRouter()
-  const[page, setPage] = useState(1);
-  const[pageSize, setPageSize] = useState(8);
+  const router = useRouter();
+  const [products, setProducts] = useState<ProductType[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<ProductType[]>([]);
 
-//   const nextPage = () => {
-//     setPage(page + 1);
-// };
+  // Fetch products from Firebase
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const db = getDatabase(app);
+        const dbRef = ref(db, "products");
+        const snapshot = await get(dbRef);
+        if (snapshot.exists()) {
+          const data = Object.values(snapshot.val()) as ProductType[];
+          setProducts(data);
+          setFilteredProducts(data); // Initialize filtered products
+        } else {
+          console.error("No products found.");
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
 
-// const prevPage = () => {
-//     if (page > 1) {
-//         setPage(page - 1);
-//     }
-// };
+    fetchData();
+  }, []);
 
-    // const{data,isLoading} = useGetAllProductsQuery({page:page,pageSize:pageSize})
-    // console.log('this is data',data)	
-    
-    // useEffect(()=>{
-    //   if(data && !isLoading){
-    //     setProduct(data.results)
-    //   }
-    // },[data,isLoading])
+  // Filter products by search term
+  const handleFilter = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const search = event.target.value.toLowerCase();
+    const filtered = products.filter(product =>
+      product.name.toLowerCase().includes(search)
+    );
+    setFilteredProducts(filtered);
+  };
 
   return (
     <main>
-            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 grid-flow-row gap-[24px] container mx-auto' data-aos="fade-up"
-                   data-aos-duration="1000">
-                {products.map((pro, key) => (
-                    <CardComponent
-                    
-                        quantity={pro.quantity}
-                        key={key}
-                        id={pro.id}
-                        onClick={() => router.push(`/service/${pro.id}`)}
-                        name={pro.name}
-                        price={pro.price}
-                        image={pro.image}
-                        desc={pro.desc}
-                    />
-                ))}
-            </div>
-            
-            {/* <div className="flex justify-center p-4 mt-[50px]">
-                    <button onClick={prevPage} disabled={page === 1} className="px-4 py-2 mx-1 rounded-lg">Previous</button>
-                    {renderPageNumbers(data)}
-                    <button onClick={nextPage} disabled={isLoading } className="px-4 py-2 mx-1 rounded-lg">Next</button>
-                </div>
-             */}
+      {/* Search Input */}
+      <div className="container mx-auto my-4">
+        <input
+          type="text"
+          placeholder="Search products..."
+          className="w-full px-4 py-2 border rounded-md"
+          onChange={handleFilter}
+        />
+      </div>
+
+      {/* Product Cards */}
+      <div
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 container mx-auto"
+        data-aos="fade-up"
+        data-aos-duration="1000"
+      >
+        {filteredProducts.map((product) => (
+          <CardComponent
+            key={product.id} // Use a unique ID for the key
+            quantity={product.quantity}
+            id={product.id}
+            onClick={() => router.push(`/service/${product.id}`)}
+            name={product.name}
+            price={product.price}
+            image={product.image}
+            desc={product.desc}
+          />
+        ))}
+      </div>
     </main>
-  )
+  );
 }

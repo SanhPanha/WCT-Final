@@ -4,7 +4,7 @@ export type ProductType={
     price: number;
     desc: string;
     image: string;
-    category: {name:any};
+    category: string;
     seller: string;
     quantity:number;
 }
@@ -55,7 +55,6 @@ export const initialValues = {
 	image: "",
 	price: 0,
 	quantity: 0,
-	fileIcon: null,
 	fileProduct: null,
 };
 
