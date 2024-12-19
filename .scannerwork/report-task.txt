@@ -1,6 +1,0 @@
-projectKey=next
-serverUrl=http://localhost:9000
-serverVersion=10.6.0.92116
-dashboardUrl=http://localhost:9000/dashboard?id=next
-ceTaskId=86bed3a2-ea06-4857-81d0-2f52de5ac08b
-ceTaskUrl=http://localhost:9000/api/ce/task?id=86bed3a2-ea06-4857-81d0-2f52de5ac08b
