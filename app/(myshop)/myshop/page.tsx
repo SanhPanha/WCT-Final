@@ -10,6 +10,7 @@ import { SearchComponent } from '@/components/seach_button/searchButton';
 import { HiOutlineExclamationCircle } from 'react-icons/hi';
 import { ProductType } from '@/lib/constans';
 import { useSession } from 'next-auth/react';
+import Image from 'next/image';
 
 const placeHolderImage = 'https://via.placeholder.com/150';
 
@@ -136,8 +137,9 @@ export default function DashBoard() {
     {
       name: 'Image',
       cell: row => (
-        <img
-          className="w-[80px] h-[70px]"
+        <Image
+          width={80}
+          height={70}
           src={row.image || placeHolderImage}
           alt={row.name || 'Placeholder'}
         />
@@ -195,10 +197,12 @@ export default function DashBoard() {
         <Modal.Header>Product Details</Modal.Header>
         <Modal.Body >
           <div className="space-y-6">
-            <img
+            <Image
+              width={320}
+              height={240}
               src={productDetail?.image || placeHolderImage}
               alt={productDetail?.name || 'Untitled'}
-              className="w-full h-80 object-contain"
+              className="object-contain"
             />
 
             <div className='flex items-center gap-3'>

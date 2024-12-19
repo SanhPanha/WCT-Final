@@ -1,4 +1,5 @@
 'use client'
+import Image from 'next/image';
 import React, { useState } from 'react'
 import { ToastContainer, toast } from 'react-toastify';
 import "react-toastify/dist/ReactToastify.css";
@@ -18,7 +19,7 @@ const CustomInput = ({ field, form, setFieldValue }: any) => {
 	};
 	return (
 		<main className='grid place-content-center'>
-			{imagePreview && <img src={imagePreview} className='w-[200px]' alt="preview" />}
+			{imagePreview && <Image width={200} height={200} src={imagePreview} alt="preview" />}
 			<section>
 			<ToastContainer
                 position="top-right"

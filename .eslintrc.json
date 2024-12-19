@@ -1,3 +1,10 @@
 {
-  "extends": "next/core-web-vitals"
+  "extends": "next/core-web-vitals",
+  "rules": {
+    "no-console": "off", // Disable console warnings
+    "react-hooks/exhaustive-deps": "off", // Disable exhaustive deps warnings
+    "react/jsx-no-duplicate-props": "warn", // Warn on duplicate JSX props
+    "no-unused-vars": "warn", // Warn about unused variables
+    "react/prop-types": "off" // Disable prop-types rule if you're using TypeScript
+  }
 }

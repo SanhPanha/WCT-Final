@@ -10,6 +10,7 @@ import { IoEyeSharp } from "react-icons/io5";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 type ValueTypes = {
 	email: string;
 	password1: string;
@@ -94,8 +95,9 @@ export default function Register() {
 		
 				<Form className="bg-gray-100 p-4 rounded-lg w-96">
 				<div className="sm:mx-auto sm:w-full sm:max-w-md">
-            <img
-              className="mx-auto h-10 w-auto"
+            <Image 
+			  width={40}
+			  height={40}
               src="https://www.istad.co/resources/img/CSTAD_120.png"
               alt="Cambo Product Logo"
             />

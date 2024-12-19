@@ -10,6 +10,7 @@ import { IoEyeSharp } from "react-icons/io5";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useRouter } from 'next/navigation';
 import { useLoginMutation } from '@/redux/service/user';
+import Image from 'next/image';
 type ValueTypes = {
 	email: string;
 	password: string;
@@ -91,8 +92,7 @@ export default function Example() {
 			>
           <Form className="space-y-6" action="#" method="POST">
           <div className="sm:mx-auto sm:w-full sm:max-w-md">
-            <img
-              className="mx-auto h-10 w-auto"
+            <Image width={40} height={40}
               src="https://www.istad.co/resources/img/CSTAD_120.png"
               alt="Cambo Product Logo"
             />
