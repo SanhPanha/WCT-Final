@@ -1,5 +1,5 @@
 'use client'
-import { CartProductType, ProductDetailType, ProductRespone, ProductType, placeHolderImage } from "@/lib/constans";
+import { CartProductType, ProductType } from "@/lib/constans";
 import { Card } from "flowbite-react";
 import { useRouter } from "next/navigation";
 const getData=async()=>{	
@@ -14,7 +14,7 @@ export default async function CardDetail(pros:CartProductType) {
     <main className="container mx-auto mt-3 ">
       <div className="grid lg:grid-cols-2">
         <div className="max-w-[500px] mx-auto">
-          <img src={pros?.image||placeHolderImage} alt="" className="max-w-[500px] "/>
+          <img src={pros?.image} alt="" className="max-w-[500px] "/>
         </div>
         <div className="leading-[40px]">
           <p>Home / Men / DNK Blue Shoes</p>
@@ -56,7 +56,7 @@ export default async function CardDetail(pros:CartProductType) {
            <Card
            key={key}
            className="container mx-auto h-[400px] w-[300px] cursor-pointer"
-           renderImage={()=>(<img className='w-[310px] h-[400px] overflow-hidden object-fit' src={item?.image||placeHolderImage} alt={item.name} onClick={()=>router.push(`/service/${item.id}`)} />
+           renderImage={()=>(<img className='w-[310px] h-[400px] overflow-hidden object-fit' src={item?.image} alt={item.name} onClick={()=>router.push(`/service/${item.slug}`)} />
            )}  
          >
            <h5 className="mt-[-40px] text-xl font-bold tracking-tight text-gray-900 dark:text-white">

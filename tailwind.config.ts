@@ -23,8 +23,9 @@ const config: Config = {
       },
     },
   },
-  plugins: [ flowbite.plugin(),
-    
+  plugins: [ 
+    flowbite.plugin(),
+    require('tailwind-scrollbar-hide')
   ],
 };
 export default config;

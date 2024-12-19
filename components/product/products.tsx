@@ -62,10 +62,10 @@ export default function Products() {
       >
         {filteredProducts.map((product) => (
           <CardComponent
-            key={product.id} // Use a unique ID for the key
+            key={product.slug} // Use a unique ID for the key
             quantity={product.quantity}
-            id={product.id}
-            onClick={() => router.push(`/service/${product.id}`)}
+            id={Number(product.slug)}
+            onClick={() => router.push(`/service/${product.slug}`)}
             name={product.name}
             price={product.price}
             image={product.image}

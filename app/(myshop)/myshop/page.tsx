@@ -5,20 +5,21 @@ import DataTable, { TableColumn } from 'react-data-table-component';
 import { useRouter } from 'next/navigation';
 import '@/app/globals.css';
 import app from "../../../lib/firebaseConfiguration";
-import { getDatabase, ref, get } from "firebase/database";
+import { getDatabase, ref, get, remove } from "firebase/database";
 import { SearchComponent } from '@/components/seach_button/searchButton';
 import { HiOutlineExclamationCircle } from 'react-icons/hi';
 import { ProductType } from '@/lib/constans';
+import { useSession } from 'next-auth/react';
 
 const placeHolderImage = 'https://via.placeholder.com/150';
 
 export default function DashBoard() {
   const router = useRouter();
-
+  const { data: session } = useSession();
   const [products, setProducts] = useState<ProductType[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<ProductType[]>([]);
   const [productDetail, setProductDetail] = useState<ProductType | null>(null);
-  const [productId, setProductId] = useState<number | null>(null);
+  const [productId, setProductId] = useState<string | null>(null);
   const [openDetailModal, setOpenDetailModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
@@ -27,12 +28,26 @@ export default function DashBoard() {
     const fetchData = async () => {
       try {
         const db = getDatabase(app);
-        const dbRef = ref(db, "products"); // Fixed typo
+        const dbRef = ref(db, "products");
         const snapshot = await get(dbRef);
+  
         if (snapshot.exists()) {
-          const data = Object.values(snapshot.val()) as ProductType[];
+          // Extract keys and values
+          const data = Object.entries(snapshot.val()).map(([key, value]) => ({
+            ...(typeof value === 'object' && value !== null ? value : {}),
+            key, // Add the Firebase key to each product object
+          })) as ProductType[];
+
+          // If session.user.name exists, filter products by seller name
+          if (session?.user?.name) {
+            const filtered = data.filter(product => product.seller === session?.user?.name);
+            setFilteredProducts(filtered);
+          } else {
+            setFilteredProducts(data);  // No filter if no session or name
+          }
+
           setProducts(data);
-          setFilteredProducts(data); // Initialize filtered products
+          console.log('Products:', data);
         } else {
           console.error("No products found.");
         }
@@ -40,9 +55,9 @@ export default function DashBoard() {
         console.error("Error fetching data:", error);
       }
     };
-
+  
     fetchData();
-  }, []);
+  }, [session]); 
 
   // Filter products by search term
   const handleFilter = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,45 +70,69 @@ export default function DashBoard() {
 
   // Handle product deletion
   const handleDelete = async () => {
-    if (productId === null) return;
-
+    if (!productId) return;
+  
     try {
-      // Call API or Firebase function to delete the product here
-      setFilteredProducts(prev => prev.filter(product => product.id !== productId));
+      const db = getDatabase(app);
+  
+      // Find the product by `slug` and get its `key`
+      const productToDelete = products.find(product => product.slug === productId);
+  
+      if (!productToDelete) {
+        alert("Product not found.");
+        return;
+      }
+  
+      const productKey = productToDelete.key; // Get the Firebase key
+  
+      const productRef = ref(db, `products/${productKey}`);
+  
+      // Remove the product from Firebase
+      await remove(productRef);
+  
+      // Update the local state
+      setProducts(prev => prev.filter(product => product.key !== productKey));
+      setFilteredProducts(prev => prev.filter(product => product.key !== productKey));
+  
       setOpenDeleteModal(false);
-    } catch (err) {
-      console.error('Error deleting product:', err);
+      alert("Product deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      alert("Failed to delete product. Please try again.");
     }
   };
+  
 
   const columns: TableColumn<ProductType>[] = [
-    {
-      name: 'ID',
-      selector: row => row.id,
-      sortable: true,
-    },
+    // {
+    //   name: 'ID',
+    //   selector: row => row.slug,
+    //   sortable: true,
+    // },
+
     {
       name: 'Product Title',
       selector: row => row.name,
       sortable: true,
-      style: {
-        backgroundColor: '#f1f1f1',
-        textAlign: 'center',
-      },
     },
+
     {
       name: 'Seller',
       selector: row => row.seller || 'N/A',
     },
+     
+    {
+      name: 'Category',
+      selector: row => row.category,
+      sortable: true,
+    },
+
     {
       name: 'Price (USD)',
       selector: row => `$${row.price.toFixed(2)}`,
       sortable: true,
-      style: {
-        backgroundColor: '#f1f1f1',
-        textAlign: 'center',
-      },
     },
+
     {
       name: 'Image',
       cell: row => (
@@ -104,12 +143,13 @@ export default function DashBoard() {
         />
       ),
     },
+    
     {
       name: 'Action',
       cell: row => (
         <div className="inline-flex rounded-lg border border-gray-100 bg-gray-100 p-1">
           <button
-            onClick={() => router.push(`/edit/${row.id}`)}
+            onClick={() => router.push(`/edit/${row.slug}`)}
             className="inline-block rounded-md px-4 py-2 text-sm text-gray-500 hover:text-gray-700 focus:relative"
           >
             Edit
@@ -125,7 +165,7 @@ export default function DashBoard() {
           </button>
           <button
             onClick={() => {
-              setProductId(row.id);
+              setProductId(row.slug);
               setOpenDeleteModal(true);
             }}
             className="inline-block rounded-md bg-white px-4 py-2 text-sm text-red-500 shadow-sm focus:relative"
@@ -138,9 +178,9 @@ export default function DashBoard() {
   ];
 
   return (
-    <main>
-      <SearchComponent onChange={handleFilter} />
-      <section className="mt-[20px] p-10">
+    <main className='flex flex-col p-9 w-full gap-6'>
+      <SearchComponent onChange={handleFilter} path='add' title='Add Product'/>
+      <section className="border-[2px] rounded-lg">
         <DataTable
           columns={columns}
           data={filteredProducts}
@@ -153,19 +193,64 @@ export default function DashBoard() {
       {/* Detail Modal */}
       <Modal show={openDetailModal} onClose={() => setOpenDetailModal(false)}>
         <Modal.Header>Product Details</Modal.Header>
-        <Modal.Body>
+        <Modal.Body >
           <div className="space-y-6">
             <img
               src={productDetail?.image || placeHolderImage}
               alt={productDetail?.name || 'Untitled'}
-              className="w-full h-96 object-contain"
+              className="w-full h-80 object-contain"
             />
-            <p className="text-base leading-relaxed text-gray-500">
-              {productDetail?.desc || 'No description available.'}
-            </p>
-            <p className="text-base leading-relaxed text-gray-500">
-              {productDetail?.name || 'No name available.'}
-            </p>
+
+            <div className='flex items-center gap-3'>
+              <h3 className="text-lg font-semibold text-orange-400">
+                Product Name :
+              </h3>
+
+              <p className=" text-gray-500 text-lg font-normal">
+                {productDetail?.name || 'No name available.'}
+              </p>   
+            </div>
+
+            <div className='flex items-center gap-3'>
+              <h3 className="text-lg font-semibold text-orange-400">
+                Description :
+              </h3>
+
+              <p className=" text-gray-500 text-lg font-normal">
+                {productDetail?.desc || 'No description available.'}
+              </p>
+            </div>
+
+            <div className='flex items-center gap-3'>
+              <h3 className="text-lg font-semibold text-orange-400">
+                Category :
+              </h3>
+
+              <p className=" text-gray-500 text-lg font-normal">
+                {productDetail?.category || 'No category available.'}
+              </p>
+            </div>
+
+            <div className='flex items-center gap-3'>
+              <h3 className="text-lg font-semibold text-orange-400">
+                Price :
+              </h3>
+
+              <p className=" text-gray-500 text-lg font-normal">
+                ${productDetail?.price.toFixed(2) || '0.00'}
+              </p>
+            </div>
+
+            <div className='flex items-center gap-3'>
+              <h3 className="text-lg font-semibold text-orange-400">
+                Seller :
+              </h3>
+
+              <p className=" text-gray-500 text-lg font-normal">
+                {productDetail?.seller || 'No seller available.'}
+              </p>
+            </div>
+
           </div>
         </Modal.Body>
       </Modal>
@@ -193,6 +278,7 @@ export default function DashBoard() {
           </div>
         </Modal.Body>
       </Modal>
+      
     </main>
   );
 }

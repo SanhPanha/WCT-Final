@@ -26,19 +26,23 @@ export default function RootLayout({
 
 {
   return (
-    <html lang="en">
+    <html lang="en" className="h-full overflow-y-auto scrollbar-hide`">
       <SessionWrapper>
-      <body className={inter.className}>
-      <StoreProvider>
-      <header>
-        <NavbarComponent/>
-      </header>
-      {children}
-      <footer>
-          <FooterComponent/>
-      </footer>
-      </StoreProvider>
-      </body>
+        <body className={`${inter.className} h-full overflow-y-auto scrollbar-hide`}>
+          <StoreProvider>
+            <header>
+              <NavbarComponent/>
+            </header>
+
+            <main className="bg-slate-50">
+              {children}
+            </main>
+              
+            <footer>
+                <FooterComponent/>
+            </footer>
+          </StoreProvider>
+        </body>
       </SessionWrapper>
     </html>
   );

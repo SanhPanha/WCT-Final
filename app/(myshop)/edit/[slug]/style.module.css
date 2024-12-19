@@ -1,5 +1,5 @@
 .container {
-	@apply h-full w-full p-9;
+	@apply  h-full w-full p-9 flex flex-grow items-center justify-center;
 }
 
 .title {

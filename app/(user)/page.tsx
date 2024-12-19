@@ -17,7 +17,9 @@ export default function Home() {
  }, [])
   return (
     <main>
+
       <HeroSectionComponent/>
+      
 	   <SectionComponent/>
         <CarouselComponent/>
         <section>

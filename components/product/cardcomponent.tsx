@@ -1,8 +1,7 @@
 "use client";
-import { CartProductType, ProductRespone, ProductType } from "@/lib/constans";
+import { CartProductType}  from "@/lib/constans";
 import { Card } from "flowbite-react";
 import { useAppDispatch } from "@/redux/hooks";
-import {increment,decrement, incrementByAmount} from "@/redux/feature/counter/couterSlice";
 import { addToCart } from "@/redux/feature/addToCart/cartSlice";
 export default function CardComponent(props:CartProductType) {
  const disPatch = useAppDispatch();

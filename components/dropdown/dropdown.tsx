@@ -1,9 +1,6 @@
 'use client'
 import React, { useEffect, useState } from 'react'
-import { ImageType } from '@/lib/constans'
 import { useGetImagesQuery , useGetIconsQuery } from '@/redux/service/images'
-import Product from '@/app/(myshop)/add/page';
-import { useAppDispatch } from '@/redux/hooks';
 export default function Dropdown() {
    
     const [selectedPhoto, setSelectedPhoto] = useState(null);
@@ -103,10 +100,10 @@ const renderPageNumbers = (data:any) => {
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
       </svg>
     </summary>
-     {props.map((image:ImageType,index)=>
+     {props.map((image:string,index)=>
                 <div key={index} className="flex items-center justify-between gap-4 p-4 bg-gray-50">
-                    <img src={image.image} alt={image.name} className="w-20 h-20 object-cover rounded-lg" onClick={()=>handleSelect(index,props,data1,'selectImage')}/>
-                    <h3 className="text-gray-900">{image.name}</h3>
+                    <img src={image} alt={image} className="w-20 h-20 object-cover rounded-lg" onClick={()=>handleSelect(index,props,data1,'selectImage')}/>
+                    <h3 className="text-gray-900">{image}</h3>
                 </div>
         
      )}
@@ -135,10 +132,10 @@ const renderPageNumbers = (data:any) => {
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
       </svg>
     </summary>
-    {icons.map((image:ImageType,index)=>
+    {icons.map((image,index)=>
                     <div key={index} className="flex items-center justify-between gap-4 p-4 bg-gray-50">
-                        <img src={image.image} alt={image.name} className="w-20 h-20 object-cover rounded-lg" onClick={()=>handleSelect(index,props,icons,'data1Icon')}/>
-                        <h3 className="text-gray-900">{image.name}</h3>
+                        <img src={image} alt={image} className="w-20 h-20 object-cover rounded-lg" onClick={()=>handleSelect(index,props,icons,'data1Icon')}/>
+                        <h3 className="text-gray-900">{image}</h3>
                     </div>
             
         )}

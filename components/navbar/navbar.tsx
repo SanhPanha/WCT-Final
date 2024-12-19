@@ -27,11 +27,13 @@ export default function NavbarComponent() {
             setLoggedIn(true);
         }
     }, [session]);
+    
+    // console.log('this is my sesstion',session)
+    // console.log('this is my loggedIn',loggedIn)
 
-    console.log('this is my sesstion',session)
-    console.log('this is my loggedIn',loggedIn)
+
     return (
-        <Navbar >
+        <Navbar className="shadow-md">
             <NavbarBrand href="/">
                 <img src="https://img.favpng.com/6/5/12/ecommerce-logo-png-favpng-c9XwFQHwsmZeVNHU6BRWQgabB.jpg" className="mr-3 h-6 sm:h-9 rounded-full" alt="Flowbite React Logo" />
                 <span className="self-center whitespace-nowrap text-xl font-semibold dark:text-white">Cambo Product</span>
