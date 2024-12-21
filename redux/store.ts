@@ -1,22 +1,19 @@
 import { configureStore } from '@reduxjs/toolkit'
 import couterSlice from './feature/counter/couterSlice'
 import tokenSlice from './feature/auth/authSlice'
-import { productApi } from './service/product'
 import cartSlice from './feature/addToCart/cartSlice'
+import favoriteSlice from './feature/addToFavorite/favoriteSlice'
 import userSlice from './feature/userProfile/userSlice'
-
-
 // create store
 export const makeStore = () => {
   return configureStore({
     reducer: {
-        [productApi.reducerPath]: productApi.reducer,
         counter: couterSlice,
         auth:tokenSlice,
         cart:cartSlice,
-        userProfile:userSlice
+        userProfile:userSlice,
+        favorite:favoriteSlice
     },
-    middleware: (getDefaultMiddleware) =>getDefaultMiddleware().concat(productApi.middleware)
   })
 }
 

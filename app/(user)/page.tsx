@@ -1,34 +1,34 @@
-'use client'
+
 import HeroSectionComponent from "@/components/hero/HeroSectionComponent";
-import '@/app/globals.css'
+import '@/app/globals.css';
 import CarouselComponent from "@/components/hero/courolsel";
-import Products from "@/components/product/products";
 import SectionComponent from "@/components/section/section";
 import FeatureProduct from "@/components/productFeature/featureProduct";
-import { useEffect } from "react";
-import AOS from 'aos';
-import 'aos/dist/aos.css';
-export default function Home() {
-  useEffect(() => {
-    AOS.init({
-         duration: 800,
-         once: false,
-       })
- }, [])
-  return (
-    <main>
+import HightlightProducts from "@/components/product/HightlightPoducts";
+import LastModifiedProducts from "@/components/product/LastModifiedProduct";
 
-      <HeroSectionComponent/>
-      
-	   <SectionComponent/>
-        <CarouselComponent/>
-        <section>
-          <p className="text-xl font-bold container mx-auto my-9">Popular Products</p>
-          <Products/>
-        </section>
-        <section>
-        <FeatureProduct/>
-        </section>
-		</main>
-		  );
-		}
+export default function Home() {
+
+  return (
+    <main className="flex flex-col gap-9">
+      {/* Hero Section */}
+      <HeroSectionComponent />
+
+      {/* Featured Section */}
+      <SectionComponent />
+
+      {/* Trusted Brands Carousel */}
+      <CarouselComponent />
+
+      {/* Popular Products Section */}
+      <HightlightProducts />
+
+      <LastModifiedProducts />
+
+      {/* Feature Product Section */}
+      <section className="container mx-auto my-9">
+        <FeatureProduct />
+      </section>
+    </main>
+  );
+}

@@ -1,98 +1,86 @@
-'use client'
-import { CartProductType, ProductType } from "@/lib/constans";
-import { Card } from "flowbite-react";
+'use client';
+import { CartProductType } from "@/lib/constans";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-
-const getData = async () => {
-  const data = await fetch(`${process.env.NEXT_PUBLIC_DJANGO_API_URL}/api/products/?page=1&page_size=4`);
-  const response = await data.json();
-  return response.results;
-}
+import { useDispatch } from "react-redux";
+import { addToCart, decrementQuantity, incrementQuantity } from "@/redux/feature/addToCart/cartSlice";
+import { addFavorite } from "@/redux/feature/addToFavorite/favoriteSlice";
 
 export default function CardDetail(pros: CartProductType) {
   const router = useRouter();
-  const [items, setItems] = useState<ProductType[]>([]);
+  const dispatch = useDispatch();
+  
 
-  // Fetch data when the component mounts
-  useEffect(() => {
-    const fetchData = async () => {
-      const itemsData = await getData();
-      setItems(itemsData);
-    };
-    fetchData();
-  }, []);
+  // Handle adding product to the cart
+  // const handleAddToCart = () => {
+  //   const productWithQuantity = { ...pros, quantity };
+  //   dispatch(addToCart(productWithQuantity));  // Dispatch action to add product to cart
+  // };
 
   return (
-    <main className="container mx-auto mt-3">
-      <div className="grid lg:grid-cols-2">
-        <div className="max-w-[500px] mx-auto">
-          <img src={pros?.image} alt="" className="max-w-[500px]" />
+    <main className="flex items-center justify-center min-h-[60vh] p-9">
+      <div className="flex gap-10 items-center bg-white p-20 shadow-xl rounded-lg">
+        {/* Product Image */}
+        <div className="w-full h-full">
+          <img
+            src={pros?.image}
+            alt={pros.name || "Product"}
+            className="rounded-lg object-cover max-w-full h-full"
+          />
         </div>
-        <div className="leading-[40px]">
-          <p>Home / Men / DNK Blue Shoes</p>
-          <p className="font-semibold">Men</p>
-          <p className="text-[30px]">{pros.name}</p>
-          <p className="text-[20px] font-semibold">{pros.price} $ +Free Shipping</p>
-          <p className="leading-">Nam nec tellus a odio tincidunt auctor a ornare odio. Sed non mauris vitae erat consequat auctor eu in elit. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Mauris in erat justo. Nullam ac urna eu felis dapibus condimentum sit amet a augue. Sed non neque elit sed.</p>
-          <div>
-            <form>
-              <label className="font-semibold">Choose quantity:</label>
-              <div className="relative flex items-center max-w-[8rem]">
-                <button type="button" id="decrement-button" data-input-counter-decrement="quantity-input" className="bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600 hover:bg-gray-200 border border-gray-300 rounded-s-lg p-3 h-11 focus:ring-gray-100 dark:focus:ring-gray-700 focus:ring-2 focus:outline-none">
-                  <svg className="w-3 h-3 text-gray-900 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 2">
-                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 1h16" />
-                  </svg>
-                </button>
-                <input type="text" id="quantity-input" data-input-counter data-input-counter-min="1" data-input-counter-max="50" aria-describedby="helper-text-explanation" className="bg-gray-50 border-x-0 border-gray-300 h-11 text-center text-gray-900 text-sm focus:ring-blue-500 focus:border-blue-500 block w-full py-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" placeholder="999" value="5" required />
-                <button type="button" id="increment-button" data-input-counter-increment="quantity-input" className="bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600 hover:bg-gray-200 border border-gray-300 rounded-e-lg p-3 h-11 focus:ring-gray-100 dark:focus:ring-gray-700 focus:ring-2 focus:outline-none">
-                  <svg className="w-3 h-3 text-gray-900 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
-                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16" />
-                  </svg>
-                </button>
-              </div>
-              <p id="helper-text-explanation" className="mt-2 text-sm text-gray-500 dark:text-gray-400">Please select a 5 digit number from 0 to 9.</p>
-            </form>
+
+        {/* Product Details */}
+        <div className="flex flex-col gap-6">
+          <h1 className="text-3xl font-bold text-gray-900 whitespace-nowrap">{pros.name}</h1>
+
+          <div className="flex gap-6">
+            <p className="text-xl font-semibold text-gray-800">Price :</p>
+            <p className="text-xl font-semibold text-orange-500">$ {pros.price}</p>
           </div>
-          <button className="mt-4 bg-yellow-500 text-white px-5 py-1 rounded-lg">Add to Cart</button>
+
+          {/* description */}
+          <p className="text-xl font-normal leading-8 text-gray-800">{pros.desc}</p>
+
+          <div className="flex items-center justify-between gap-6">
+           <div className="flex flex-grow gap-2">
+            <button
+              className="w-full rounded-md flex-1 bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+              onClick={() => {
+                dispatch(
+                  addFavorite({
+                    id: pros.id,
+                    name: pros.name,
+                    image: pros.image,
+                    price: pros.price,
+                    desc: pros.desc,
+                  })
+                );
+              }}
+            >
+              Favorite
+            </button>
         </div>
-      </div>
 
-      <div className="mt-[35px] leading-4">
-        <hr className="bg-green-500 border-none h-[1px] w-[90px]" />
-        <p className="text-black font-semibold">Descriptions</p>
-        <p className="text-gray-500 font-semibold text-base mt-4">Unwind in comfort without compromising style with our Relaxed Fit Joggers...</p>
-      </div>
-
-      <p className="mt-4 text-[24px] text-black font-semibold">Suggestion Products</p>
-      <div className="mt-[30px] grid sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-4 lg:grid-cols-3 gap-[24px]">
-        {items.map((item: ProductType, key: any) => (
-          <Card
-            key={key}
-            className="container mx-auto h-[400px] w-[300px] cursor-pointer"
-            renderImage={() => (
-              <img
-                className="w-[310px] h-[400px] overflow-hidden object-fit"
-                src={item?.image}
-                alt={item.name}
-                onClick={() => router.push(`/service/${item.slug}`)}
-              />
-            )}
-          >
-            <h5 className="mt-[-40px] text-xl font-bold tracking-tight text-gray-900 dark:text-white">
-              {item?.name || "Product Name"}
-            </h5>
-            <p className="font-normal text-gray-700 dark:text-gray-400 line-clamp-2">
-              {item?.desc || "Product Description"}
-            </p>
-            <div className="flex items-center justify-between">
-              <span className="text-xl font-bold text-gray-900 dark:text-white">${item.price}</span>
-              <a href="#" className="rounded-lg bg-yellow-500 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-cyan-800 focus:outline-none focus:ring-4 focus:ring-cyan-300 dark:bg-cyan-600 dark:hover:bg-cyan-700 dark:focus:ring-cyan-800">
-                Add to cart
-              </a>
-            </div>
-          </Card>
-        ))}
+          <div className="flex flex-grow gap-2">
+            <button
+              className="rounded-md flex-1 bg-yellow-500 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-300 dark:bg-yellow-600 dark:hover:bg-yellow-700 dark:focus:ring-yellow-800"
+              onClick={() => {
+                dispatch(
+                  addToCart({
+                    id: pros.id,
+                    name: pros.name,
+                    image: pros.image,
+                    price: pros.price,
+                    desc: pros.desc,
+                    quantity: pros.quantity,
+                  })
+                );
+              }}
+            >
+              Add to Cart
+            </button>
+          </div>
+        </div>
+        </div>
       </div>
     </main>
   );

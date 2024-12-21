@@ -18,6 +18,8 @@ const initialValues = {
   image: "",
   price: 0,
   quantity: 0,
+  isHighLight: false,
+  isCheckOut: false,
 };
 
 const validationSchema = Yup.object().shape({
@@ -25,6 +27,7 @@ const validationSchema = Yup.object().shape({
   name: Yup.string().required("Product Name is required"),
   desc: Yup.string().nullable(),
   price: Yup.number().required("Price is required"),
+  image: Yup.string().required("Image is required"),
 });
 
 export default function Product() {
@@ -69,6 +72,9 @@ export default function Product() {
       image: values.image, // Image file name, handle upload separately if needed
       price: values.price,
       quantity: values.quantity,
+      isHighLight: false,
+      isCheckOut: false,
+      date: new Date().toISOString(), // Auto-assign current time
       seller: session?.user?.name || "Unknown Seller",
     };
 
@@ -77,7 +83,7 @@ export default function Product() {
     try {
       await set(productRef, productData);
       alert("Product saved successfully!");
-      router.push("/myshop");
+      router.push("/products/product");
     } catch (error: any) {
       console.error("Error saving product:", error.message);
       alert(`Error saving product: ${error.message}`);
@@ -96,7 +102,7 @@ export default function Product() {
            <div className="my-3 ">
              <button
                type="button"
-               onClick={() => router.push(`/myshop`)}
+               onClick={() => router.push(`/products/product`)}
                className="bg-orange-400 text-lg font-medium hover:bg-orange-600 text-white px-6 rounded-lg"
              >
                Back
@@ -174,7 +180,7 @@ export default function Product() {
 
            <div className="mb-5">
              <label htmlFor="image" className={style.label}>
-               Product Image (Name only)
+               Product Image
              </label>
              <Field type="text" name="image" id="image" className={style.input} />
              <ErrorMessage name="image" component="div" className={style.error} />
@@ -190,7 +196,7 @@ export default function Product() {
                </button>
              <button
                type="button"
-               onClick={() => router.push(`/myshop");`)}
+               onClick={() => router.push(`/products/product`)}
                className="bg-orange-600 text-white px-3 py-2 ml-2 rounded-lg"
              >
                Cancel

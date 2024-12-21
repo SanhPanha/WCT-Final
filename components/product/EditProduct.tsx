@@ -28,6 +28,9 @@ interface ProductProps {
     category: string;
     seller: string;
     quantity:number;
+    date?: string;
+    isHighLight?: boolean;
+    isCheckOut?: boolean;
   };
 }
 
@@ -45,6 +48,10 @@ export default function EditProduct({ product }: ProductProps) {
     quantity: product.quantity,
     seller: product.seller,
     image: product.image,
+    date: product.date,
+    isHighLight: product.isHighLight,
+    isCheckOut: product.isCheckOut
+    
   };
 
 
@@ -90,13 +97,16 @@ export default function EditProduct({ product }: ProductProps) {
       quantity: values.quantity,
       seller: values.seller,
       image: values.image,
+      date: values.date,
+      isHighLight: values.isHighLight,
+      isCheckOut: values.isCheckOut
     };
   
     try {
       setIsLoading(true);
       await update(productRef, updatedData);
       alert("Product updated successfully!");
-      router.push("/myshop");
+      router.push("/products/product");
     } catch (error: any) {
       alert(`Error updating product: ${error.message}`);
     } finally {
@@ -127,7 +137,7 @@ export default function EditProduct({ product }: ProductProps) {
             <div className="my-3 ">
               <button
                 type="button"
-                onClick={() => router.push(`/myshop`)}
+                onClick={() => router.push(`/products/product`)}
                 className="bg-orange-400 text-lg font-medium hover:bg-orange-600 text-white px-6 rounded-lg"
               >
                 Back
@@ -221,7 +231,7 @@ export default function EditProduct({ product }: ProductProps) {
                 </button>
               <button
                 type="button"
-                onClick={() => router.push(`/myshop`)}
+                onClick={() => router.push(`/products/product`)}
                 className="bg-orange-600 text-white px-3 py-2 ml-2 rounded-lg"
               >
                 Cancel

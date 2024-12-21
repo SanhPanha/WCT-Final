@@ -13,7 +13,7 @@ export function SearchComponent({ onChange, path, title }: Props) {
   const router = useRouter();
 
   return (
-    <div className="flex justify-between gap-3 mt-4 max-w-full">
+    <div className="flex justify-between gap-3 max-w-full">
       <div className="w-full">
         <TextInput
           id="base"

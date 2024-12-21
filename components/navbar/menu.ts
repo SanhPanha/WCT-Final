@@ -1,8 +1,14 @@
+
 export const MenuList = [
     {
         title: 'Home',
         path: '/',
         active: true
+    },
+    {
+        title: "Products",
+        path: "/all-products",
+        active: false
     },
     {
         title: 'About',

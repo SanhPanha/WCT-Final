@@ -13,54 +13,48 @@ const cartSlice = createSlice({
   initialState,
   reducers: {
     addToCart: (state, action: PayloadAction<CartProductType>) => {
-   
       const existingProductIndex = state.products.findIndex(
         (product) => product.id === action.payload.id
-       );
-      
-       if (existingProductIndex >= 0) {
-        
-        state.products[existingProductIndex].quantity = (state.products[existingProductIndex].quantity || 0) + 1;
-       } else {
+      );
 
+      if (existingProductIndex >= 0) {
+        state.products[existingProductIndex].quantity = 
+          (state.products[existingProductIndex].quantity || 0) + 1;
+      } else {
         state.products.push({ ...action.payload, quantity: 1 });
-       }
-      
-      state.totalPrice = Number(state.totalPrice) + Number(action.payload.price);
-    },
-    removeFromCart: (state, action: PayloadAction<{ id: number; quantity?: number }>) => {
+      }
 
+      state.totalPrice += action.payload.price;
+    },
+    removeFromCart: (state, action: PayloadAction<{ id: string; quantity?: number }>) => {
       const product = state.products.find((product) => product.id === action.payload.id);
       if (product) {
-         if (action.payload.quantity) {
-        
-         product.quantity = Math.max(0, (product.quantity || 0) - action.payload.quantity);
-         state.totalPrice -= product.price * action.payload.quantity;
-         } else {
-        
-         state.totalPrice -= product.price * (product.quantity || 0);
-         state.products = state.products.filter((product) => product.id !== action.payload.id);
-         }
+        if (action.payload.quantity) {
+          product.quantity = Math.max(0, (product.quantity || 0) - action.payload.quantity);
+          state.totalPrice -= product.price * action.payload.quantity;
+        } else {
+          state.totalPrice -= product.price * (product.quantity || 0);
+          state.products = state.products.filter((product) => product.id !== action.payload.id);
+        }
       }
     },
-    incrementQuantity: (state, action: PayloadAction<number>) => {
+    incrementQuantity: (state, action: PayloadAction<string>) => {
       const product = state.products.find((product) => product.id === action.payload);
       if (product) {
         product.quantity = (product.quantity || 0) + 1;
-        state.totalPrice = Number(state.totalPrice) + Number(product.price);
+        state.totalPrice += product.price;
       }
-       },
-
-       decrementQuantity: (state, action: PayloadAction<number>) => {
+    },
+    decrementQuantity: (state, action: PayloadAction<string>) => {
       const product = state.products.find((product) => product.id === action.payload);
-      if (product  && (product.quantity || 0) > 1) {
+      if (product && (product.quantity || 0) > 1) {
         product.quantity = (product.quantity || 0) - 1;
-         
-         state.totalPrice = Number(state.totalPrice) - Number(product.price);
+        state.totalPrice -= product.price;
       }
-       },
+    },
   },
 });
+
 
 // export actions
 export const { addToCart, removeFromCart, incrementQuantity, decrementQuantity } = cartSlice.actions;

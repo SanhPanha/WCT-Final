@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { Button, Modal } from 'flowbite-react';
+import { Button, Modal, Select } from 'flowbite-react'; // Add Select for dropdown
 import DataTable, { TableColumn } from 'react-data-table-component';
 import { useRouter } from 'next/navigation';
 import '@/app/globals.css';
@@ -8,7 +8,7 @@ import app from "../../../lib/firebaseConfiguration";
 import { getDatabase, ref, get, remove } from "firebase/database";
 import { SearchComponent } from '@/components/seach_button/searchButton';
 import { HiOutlineExclamationCircle } from 'react-icons/hi';
-import { ProductType } from '@/lib/constans';
+import { CatageoryType, ProductType } from '@/lib/constans';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 
@@ -17,8 +17,10 @@ const placeHolderImage = 'https://via.placeholder.com/150';
 export default function DashBoard() {
   const router = useRouter();
   const { data: session } = useSession();
+  const [categories, setCategories] = useState<CatageoryType[]>([]);
   const [products, setProducts] = useState<ProductType[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<ProductType[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>(''); // State for selected category
   const [productDetail, setProductDetail] = useState<ProductType | null>(null);
   const [productId, setProductId] = useState<string | null>(null);
   const [openDetailModal, setOpenDetailModal] = useState(false);
@@ -60,6 +62,31 @@ export default function DashBoard() {
     fetchData();
   }, [session]); 
 
+  // Fetch category
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const db = getDatabase(app);
+        const dbRef = ref(db, "categories");
+        const snapshot = await get(dbRef);
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const categoryList = Object.entries(data).map(([key, value]: any) => ({
+            id: key,
+            ...value,
+          }));
+          setCategories(categoryList);
+        } else {
+          console.error("No categories found.");
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   // Filter products by search term
   const handleFilter = (event: React.ChangeEvent<HTMLInputElement>) => {
     const search = event.target.value.toLowerCase();
@@ -67,6 +94,18 @@ export default function DashBoard() {
       product.name.toLowerCase().includes(search)
     );
     setFilteredProducts(search ? filtered : products);
+  };
+
+  // Filter products by selected category
+  const handleCategoryFilter = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = event.target.value;
+    setSelectedCategory(selected);
+
+    // Filter products based on category
+    const filtered = products.filter(product => 
+      selected === '' || product.category === selected
+    );
+    setFilteredProducts(filtered);
   };
 
   // Handle product deletion
@@ -105,53 +144,41 @@ export default function DashBoard() {
   
 
   const columns: TableColumn<ProductType>[] = [
-    // {
-    //   name: 'ID',
-    //   selector: row => row.slug,
-    //   sortable: true,
-    // },
-
     {
       name: 'Product Title',
       selector: row => row.name,
       sortable: true,
     },
-
     {
       name: 'Seller',
       selector: row => row.seller || 'N/A',
     },
-     
     {
       name: 'Category',
       selector: row => row.category,
       sortable: true,
     },
-
     {
       name: 'Price (USD)',
       selector: row => `$${row.price.toFixed(2)}`,
       sortable: true,
     },
-
     {
       name: 'Image',
       cell: row => (
-        <Image
-          width={80}
-          height={70}
+        <img
+          className="w-[80px] h-[70px]"
           src={row.image || placeHolderImage}
           alt={row.name || 'Placeholder'}
         />
       ),
     },
-    
     {
       name: 'Action',
       cell: row => (
         <div className="inline-flex rounded-lg border border-gray-100 bg-gray-100 p-1">
           <button
-            onClick={() => router.push(`/edit/${row.slug}`)}
+            onClick={() => router.push(`/products/edit/${row.slug}`)}
             className="inline-block rounded-md px-4 py-2 text-sm text-gray-500 hover:text-gray-700 focus:relative"
           >
             Edit
@@ -181,7 +208,28 @@ export default function DashBoard() {
 
   return (
     <main className='flex flex-col p-9 w-full gap-6'>
-      <SearchComponent onChange={handleFilter} path='add' title='Add Product'/>
+
+      <div className='flex items-center justify-between' >
+
+          <Select
+          id="categoryFilter"
+          value={selectedCategory}
+          onChange={handleCategoryFilter}
+          className="w-48"
+        >
+          <option value="">All Categories</option>
+          {categories.map(category => (
+            <option key={category.slug} value={category.slug}>
+              {category.title}
+            </option>
+          ))}
+        </Select>
+
+        <SearchComponent onChange={handleFilter} path='/products/add' title='Add Product'/>
+
+      </div>
+    
+
       <section className="border-[2px] rounded-lg">
         <DataTable
           columns={columns}
@@ -197,12 +245,10 @@ export default function DashBoard() {
         <Modal.Header>Product Details</Modal.Header>
         <Modal.Body >
           <div className="space-y-6">
-            <Image
-              width={320}
-              height={240}
+            <img
               src={productDetail?.image || placeHolderImage}
               alt={productDetail?.name || 'Untitled'}
-              className="object-contain"
+              className="w-full h-80 object-contain"
             />
 
             <div className='flex items-center gap-3'>
@@ -215,8 +261,8 @@ export default function DashBoard() {
               </p>   
             </div>
 
-            <div className='flex items-center gap-3'>
-              <h3 className="text-lg font-semibold text-orange-400">
+            <div className='flex items-start gap-3'>
+              <h3 className="text-lg font-semibold text-orange-400 whitespace-nowrap">
                 Description :
               </h3>
 

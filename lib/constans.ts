@@ -8,6 +8,9 @@ export type ProductType={
     seller: string;
     quantity:number;
     key?: string; 
+	date?: string;
+	isHighLight?: boolean;
+	isCheckOut?: boolean;
 }
 
 
@@ -15,6 +18,7 @@ export type CatageoryType = {
     slug: string
 	title: string;
 	desc: string;
+	image?: string
     key?: string; 
 }
     
@@ -35,7 +39,16 @@ export type CartProductType = {
 	image: string;
 	price: number;
     desc:string
-	id: number;
+	id: string;
     quantity: number;
+	onClick?: () => void;
+};
+
+export type FavoriteType = {
+	name: string;
+	image: string;
+	price: number;
+    desc:string
+	id: string;
 	onClick?: () => void;
 };
