@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { ProductType } from "@/lib/constans";
 import { useRouter } from "next/navigation";
 import CardComponent from "./cardcomponent";
-import app from "../../lib/firebaseConfiguration";
+import app from "../../lib/firebase/firebaseConfiguration";
 import { getDatabase, ref, get } from "firebase/database";
 
 export default function Products() {

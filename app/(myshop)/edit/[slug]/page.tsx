@@ -2,7 +2,7 @@
 
 import { useRouter, useParams } from "next/navigation";
 import { getDatabase, ref, get } from "firebase/database";
-import app from "../../../../lib/firebaseConfiguration";
+import app from "../../../../lib/firebase/firebaseConfiguration";
 import { useEffect, useState } from "react";
 import EditProduct from "@/components/product/EditProduct";
 import style from "./style.module.css";

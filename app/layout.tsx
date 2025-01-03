@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "../globals.css";
+import "./globals.css";
 import NavbarComponent from "@/components/navbar/navbar";
 import FooterComponent from "@/components/footer/footer";
-import  StoreProvider  from "../StoreProvider";
-import SessionWrapper from "../SesionProvider";
+import  StoreProvider  from "./StoreProvider";
+import { AuthProvider } from "@/lib/context/context";
 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -27,8 +27,9 @@ export default function RootLayout({
 {
   return (
     <html lang="en">
-      <SessionWrapper>
-        <body className={`${inter.className} `}>
+       <body className={`${inter.className} `}>
+        <AuthProvider>
+          
           <StoreProvider>
             <header>
               <NavbarComponent/>
@@ -42,8 +43,9 @@ export default function RootLayout({
                 <FooterComponent/>
             </footer>
           </StoreProvider>
+       
+        </AuthProvider>
         </body>
-      </SessionWrapper>
     </html>
   );
 }

@@ -1,10 +1,9 @@
+import React from 'react';
 import CardDetail from '@/components/product/productDetail';
 import { getDatabase, ref, get } from 'firebase/database';
-import app from '@/lib/firebaseConfiguration';
+import app from '@/lib/firebase/firebaseConfiguration';
 import { Metadata } from 'next';
-import React from 'react';
 import { ProductType } from '@/lib/constans';
-
 
 // Fetch product details based on the slug
 const fetchProductBySlug = async (slug: string): Promise<ProductType | null> => {
@@ -35,11 +34,11 @@ const fetchProductBySlug = async (slug: string): Promise<ProductType | null> => 
 
 // Metadata generation for the page
 export async function generateMetadata({
-  params: { slug },
+  params,
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const product = await fetchProductBySlug(slug);
+  const product = await fetchProductBySlug(params.slug);
 
   if (product) {
     return {
@@ -58,7 +57,11 @@ export async function generateMetadata({
 }
 
 // Page component for product detail
-const ProductDetail = async ({ params }: { params: { slug: string } }) => {
+const ProductDetail = async ({
+  params,
+}: {
+  params: { slug: string };
+}) => {
   const product = await fetchProductBySlug(params.slug);
 
   if (!product) {

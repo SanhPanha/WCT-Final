@@ -4,19 +4,17 @@ import { Button, Modal, Select } from 'flowbite-react'; // Add Select for dropdo
 import DataTable, { TableColumn } from 'react-data-table-component';
 import { useRouter } from 'next/navigation';
 import '@/app/globals.css';
-import app from "../../../lib/firebaseConfiguration";
+import app from "../../../lib/firebase/firebaseConfiguration";
 import { getDatabase, ref, get, remove } from "firebase/database";
 import { SearchComponent } from '@/components/seach_button/searchButton';
 import { HiOutlineExclamationCircle } from 'react-icons/hi';
 import { CatageoryType, ProductType } from '@/lib/constans';
-import { useSession } from 'next-auth/react';
-import Image from 'next/image';
+import { useAuth } from '@/lib/context/context';
 
 const placeHolderImage = 'https://via.placeholder.com/150';
 
 export default function DashBoard() {
   const router = useRouter();
-  const { data: session } = useSession();
   const [categories, setCategories] = useState<CatageoryType[]>([]);
   const [products, setProducts] = useState<ProductType[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<ProductType[]>([]);
@@ -25,6 +23,7 @@ export default function DashBoard() {
   const [productId, setProductId] = useState<string | null>(null);
   const [openDetailModal, setOpenDetailModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const { userLoggedIn } = useAuth();
 
   // Fetch products from Firebase
   useEffect(() => {
@@ -42,8 +41,8 @@ export default function DashBoard() {
           })) as ProductType[];
 
           // If session.user.name exists, filter products by seller name
-          if (session?.user?.name) {
-            const filtered = data.filter(product => product.seller === session?.user?.name);
+          if (userLoggedIn) {
+            const filtered = data.filter(product => product.seller === "");
             setFilteredProducts(filtered);
           } else {
             setFilteredProducts(data);  // No filter if no session or name
@@ -60,7 +59,7 @@ export default function DashBoard() {
     };
   
     fetchData();
-  }, [session]); 
+  }, [userLoggedIn]); 
 
   // Fetch category
   useEffect(() => {

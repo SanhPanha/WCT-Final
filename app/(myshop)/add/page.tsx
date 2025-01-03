@@ -6,7 +6,7 @@ import style from "./style.module.css";
 import { useRouter } from "next/navigation";
 import { CatageoryType, ProductType } from "@/lib/constans";
 import { getDatabase, ref, set, push, get } from "firebase/database";
-import app from "../../../lib/firebaseConfiguration";
+import app from "../../../lib/firebase/firebaseConfiguration";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 

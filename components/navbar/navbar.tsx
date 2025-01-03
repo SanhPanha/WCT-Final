@@ -16,7 +16,7 @@ import Link from 'next/link';
 import '@/app/globals.css';
 import { IoCart, IoHeart } from 'react-icons/io5';
 import { useAppSelector } from '@/redux/hooks';
-import { useSession, signOut } from 'next-auth/react';
+import { useAuth } from '@/lib/context/context';
 
 type MenuItems = {
   title: string;
@@ -28,16 +28,34 @@ export default function NavbarComponent() {
   const [menu] = useState<MenuItems[]>(MenuList);
   const router = useRouter();
   const pathName = usePathname();
-  const [loggedIn, setLoggedIn] = useState(false);
-  const { data: session } = useSession();
   const cartCount = useAppSelector((state) => state.cart.products.length);
   const favoriteCount = useAppSelector((state) => state.favorite.favorites.length);
 
-  useEffect(() => {
-    if (session) {
-      setLoggedIn(true);
+  const { currentUser, userLoggedIn, logout } = useAuth();
+
+  console.log("userLoggedIn:", userLoggedIn);
+    console.log("currentUser:", currentUser);
+
+  // If loading state is required, show a loading indicator
+  if (!currentUser && userLoggedIn === null) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="loader">Loading</div> {/* Or use a spinner from Flowbite */}
+      </div>
+    );
+  }
+
+  const handleLogout = () => {
+    if (window.confirm("Are you sure you want to log out?")) {
+      logout();
     }
-  }, [session]);
+  };
+  
+  <Button onClick={handleLogout} className="bg-orange-400">
+    Log out
+  </Button>;
+  
+
 
   return (
     <Navbar
@@ -84,29 +102,34 @@ export default function NavbarComponent() {
 
         {/* Avatar and Authentication */}
         <div className="flex items-center gap-2">
-          {loggedIn ? (
-            <Avatar
-              img={session?.user?.image as string}
-              alt="User Avatar"
-              rounded
-              className="cursor-pointer"
-              onClick={() => router.push('/profile')}
-            />
+        {!userLoggedIn ? (
+            <Button
+                onClick={() => router.push("/login")}
+                className="bg-red-500"
+                aria-label="Login Button"
+            >
+            Login
+          </Button>
           ) : (
-            <Button
-              onClick={() => router.push(`/login`)}
-              className="bg-blue-500 hover:bg-blue-600 text-white"
-            >
-              Login
-            </Button>
+            <div>
+                <Avatar
+                    img={currentUser?.photoURL || "/default-avatar.jpg"}
+                    alt={currentUser?.displayName || "User Avatar"}
+                    rounded
+                />
+                <span>{currentUser?.displayName}</span>
+            </div>
+        
           )}
+        </div>
 
-          {loggedIn && (
+        <div className="ml-[10px]">
+          {userLoggedIn && (
             <Button
-              onClick={() => signOut()}
-              className="bg-red-500 hover:bg-red-600 text-white"
+              onClick={logout}
+              className="bg-orange-400"
             >
-              Logout
+              Log out
             </Button>
           )}
         </div>
