@@ -8,7 +8,7 @@ export default function MyShopLayout({
 }) {
   console.log("Rendering MyShop Layout");
 
-  return (
+  return (  
     <html lang="en" className="flex flex-col w-full scrollbar-hide">
       <body className="flex flex-col w-full min-h-screen">
         <StoreProvider>

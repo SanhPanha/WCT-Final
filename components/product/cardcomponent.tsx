@@ -6,7 +6,6 @@ import { useAppDispatch } from "@/redux/hooks";
 import { addToCart } from "@/redux/feature/addToCart/cartSlice";
 import { addFavorite } from "@/redux/feature/addToFavorite/favoriteSlice";
 
-
 export default function CardComponent(props: CartProductType) {
   const dispatch = useAppDispatch();
   const placeHolderImage =
@@ -14,71 +13,65 @@ export default function CardComponent(props: CartProductType) {
 
   return (
     <Card
-      className="container mx-auto h-[500px] w-[320px] cursor-pointer rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-transform duration-300"
+      className="flex flex-col h-full w-full max-w-sm mx-auto cursor-pointer rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-transform duration-300 sm:max-w-md lg:max-w-lg"
       renderImage={() => (
         <img
-          className="w-full h-[220px] rounded-t-lg object-cover"
+          className="w-full h-48 rounded-t-lg object-cover sm:h-56 md:h-64"
           src={props?.image || placeHolderImage}
           alt={props.name}
           onClick={props.onClick}
         />
       )}
     >
-      <div className="flex flex-col gap-6 p-5">
-        <h5 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white truncate">
+      <div className="flex flex-col gap-4 p-4 md:p-5">
+        <h5 className="text-base font-bold tracking-tight text-gray-900 dark:text-white truncate md:text-lg">
           {props?.name || "Product Name"}
         </h5>
 
-        <p className="text-sm text-gray-700 dark:text-gray-400 line-clamp-2">
+        <p className="text-sm text-gray-700 dark:text-gray-400 line-clamp-2 md:text-base">
           {props?.desc || "Product Description"}
         </p>
 
-        <span className="text-xl font-bold text-gray-900 dark:text-white">
+        <span className="text-lg font-bold text-gray-900 dark:text-white md:text-xl">
           ${props.price?.toFixed(2)}
         </span>
 
-        <div className="flex items-center justify-between">
-           <div className="flex gap-2">
-            <button
-              className="w-full rounded-md  bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-              onClick={() => {
-                dispatch(
-                  addFavorite({
-                    id: props.id,
-                    name: props.name,
-                    image: props.image,
-                    price: props.price,
-                    desc: props.desc,
-                  })
-                );
-              }}
-            >
-              Favorite
-            </button>
-        </div>
+        <div className="flex items-center justify-between mt-2">
+          <button
+            className="flex-1 rounded-md bg-blue-500 px-3 py-2 text-sm font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 md:px-4 md:py-2"
+            onClick={() => {
+              dispatch(
+                addFavorite({
+                  id: props.id,
+                  name: props.name,
+                  image: props.image,
+                  price: props.price,
+                  desc: props.desc,
+                })
+              );
+            }}
+          >
+            Favorite
+          </button>
 
-          <div className="flex gap-2">
-            <button
-              className="rounded-md bg-yellow-500 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-300 dark:bg-yellow-600 dark:hover:bg-yellow-700 dark:focus:ring-yellow-800"
-              onClick={() => {
-                dispatch(
-                  addToCart({
-                    id: props.id,
-                    name: props.name,
-                    image: props.image,
-                    price: props.price,
-                    desc: props.desc,
-                    quantity: props.quantity,
-                  })
-                );
-              }}
-            >
-              Add to Cart
-            </button>
-          </div>
+          <button
+            className="ml-2 flex-1 rounded-md bg-yellow-500 px-3 py-2 text-sm font-medium text-white hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-300 dark:bg-yellow-600 dark:hover:bg-yellow-700 dark:focus:ring-yellow-800 md:px-4 md:py-2"
+            onClick={() => {
+              dispatch(
+                addToCart({
+                  id: props.id,
+                  name: props.name,
+                  image: props.image,
+                  price: props.price,
+                  desc: props.desc,
+                  quantity: props.quantity,
+                })
+              );
+            }}
+          >
+            Add to Cart
+          </button>
         </div>
-
-       
       </div>
     </Card>
   );

@@ -1,11 +1,18 @@
-'use client'
+'use client';
+
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import React from 'react';
-import { FaCheck, FaClock, FaQuestion } from 'react-icons/fa';
+import { FaCheck } from 'react-icons/fa';
 import { MdDelete } from 'react-icons/md';
-import { removeFromCart, selectProducts, selectTotalPrice, incrementQuantity, decrementQuantity } from '@/redux/feature/addToCart/cartSlice';
+import {
+  decrementQuantity,
+  incrementQuantity,
+  removeFromCart,
+  selectProducts,
+  selectTotalPrice,
+} from '@/redux/feature/addToCart/cartSlice';
+
 import { CartProductType } from '@/lib/constans';
-import { decrement } from '@/redux/feature/counter/couterSlice';
 
 export default function ProductView() {
   const products = useAppSelector(selectProducts);
@@ -15,7 +22,9 @@ export default function ProductView() {
   return (
     <div className="bg-gray-100 min-h-screen">
       <div className="mx-auto max-w-7xl px-4 pb-24 pt-16 sm:px-6 lg:px-8">
-        <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl mb-10">Shopping Cart</h1>
+        <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl mb-10">
+          Shopping Cart
+        </h1>
 
         {products.length === 0 ? (
           <div className="flex items-center justify-center h-96">
@@ -42,21 +51,16 @@ export default function ProductView() {
 
                     <div className="ml-4 flex flex-1 flex-col sm:ml-6">
                       <div className="flex justify-between">
-                        <h3 className="text-lg font-medium text-gray-800">
-                          {product.name}
-                        </h3>
+                        <h3 className="text-lg font-medium text-gray-800">{product.name}</h3>
                         <button
                           type="button"
                           className="text-red-500 hover:text-red-700"
-                          onClick={() => {
-                            dispatch(removeFromCart({ id: product.id, quantity: product.quantity }));
-                            dispatch(decrement());
-                          }}
+                          onClick={() => dispatch(removeFromCart({ id: product.id }))}
                         >
                           <MdDelete className="h-6 w-6" />
                         </button>
                       </div>
-                      
+
                       <div className="mt-4 flex items-center gap-4">
                         <div className="flex items-center border rounded-lg overflow-hidden">
                           <button
@@ -120,16 +124,19 @@ export default function ProductView() {
                 </div>
                 <div className="flex items-center justify-between border-t border-gray-200 pt-4">
                   <dt className="text-base font-medium text-gray-900">Order total</dt>
-                  <dd className="text-base font-medium text-gray-900">${totalPrice}</dd>
+                  <dd className="text-base font-medium text-gray-900">
+                    ${totalPrice + 5.0 + 8.32}
+                  </dd>
                 </div>
               </dl>
 
               <div className="mt-6">
                 <button
-                  type="submit"
-                  className="w-full rounded-md bg-yellow-500 px-4 py-3 text-base font-medium text-white shadow-sm hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-offset-2"
+                  type="button"
+                  className="w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 focus:outline-none"
+                  onClick={() => products.forEach((product) => dispatch(removeFromCart({ id: product.id })))}
                 >
-                  Checkout
+                  Check out
                 </button>
               </div>
             </section>
@@ -138,4 +145,4 @@ export default function ProductView() {
       </div>
     </div>
   );
-}
+} 

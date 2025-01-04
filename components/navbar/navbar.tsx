@@ -15,8 +15,9 @@ import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import '@/app/globals.css';
 import { IoCart, IoHeart } from 'react-icons/io5';
-import { useAppSelector } from '@/redux/hooks';
+import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { useAuth } from '@/lib/context/context';
+import { fetchCartData } from '@/redux/feature/addToCart/cartSlice';
 
 type MenuItems = {
   title: string;
@@ -25,37 +26,24 @@ type MenuItems = {
 };
 
 export default function NavbarComponent() {
+  const dispatch = useAppDispatch();
   const [menu] = useState<MenuItems[]>(MenuList);
   const router = useRouter();
   const pathName = usePathname();
   const cartCount = useAppSelector((state) => state.cart.products.length);
   const favoriteCount = useAppSelector((state) => state.favorite.favorites.length);
-
   const { currentUser, userLoggedIn, logout } = useAuth();
 
-  console.log("userLoggedIn:", userLoggedIn);
-    console.log("currentUser:", currentUser);
-
-  // If loading state is required, show a loading indicator
-  if (!currentUser && userLoggedIn === null) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="loader">Loading</div> {/* Or use a spinner from Flowbite */}
-      </div>
-    );
-  }
+  useEffect(() => {
+    // Fetch cart data on component mount
+    dispatch(fetchCartData());
+  }, [dispatch]);
 
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to log out?")) {
       logout();
     }
   };
-  
-  <Button onClick={handleLogout} className="bg-orange-400">
-    Log out
-  </Button>;
-  
-
 
   return (
     <Navbar
@@ -89,44 +77,43 @@ export default function NavbarComponent() {
 
         {/* Favorite Icon */}
         <div className="relative">
-            <IoHeart
-                onClick={() => router.push(`/favorite`)}
-                className="text-3xl text-pink-500 cursor-pointer hover:text-pink-600 transition"
-            />
-            {favoriteCount > 0 && (
-                <span className="absolute top-[-8px] right-[-8px] bg-red-500 text-white text-xs rounded-full px-2">
-                {favoriteCount}
-                </span>
-            )}
+          <IoHeart
+            onClick={() => router.push(`/favorite`)}
+            className="text-3xl text-pink-500 cursor-pointer hover:text-pink-600 transition"
+          />
+          {favoriteCount > 0 && (
+            <span className="absolute top-[-8px] right-[-8px] bg-red-500 text-white text-xs rounded-full px-2">
+              {favoriteCount}
+            </span>
+          )}
         </div>
 
         {/* Avatar and Authentication */}
         <div className="flex items-center gap-2">
-        {!userLoggedIn ? (
+          {!userLoggedIn ? (
             <Button
-                onClick={() => router.push("/login")}
-                className="bg-red-500"
-                aria-label="Login Button"
+              onClick={() => router.push("/login")}
+              className="bg-red-500"
+              aria-label="Login Button"
             >
-            Login
-          </Button>
+              Login
+            </Button>
           ) : (
             <div>
-                <Avatar
-                    img={currentUser?.photoURL || "/default-avatar.jpg"}
-                    alt={currentUser?.displayName || "User Avatar"}
-                    rounded
-                />
-                <span>{currentUser?.displayName}</span>
+              <Avatar
+                img={currentUser?.photoURL || "/default-avatar.jpg"}
+                alt={currentUser?.displayName || "User Avatar"}
+                rounded
+              />
+              <span>{currentUser?.displayName}</span>
             </div>
-        
           )}
         </div>
 
         <div className="ml-[10px]">
           {userLoggedIn && (
             <Button
-              onClick={logout}
+              onClick={handleLogout}
               className="bg-orange-400"
             >
               Log out
