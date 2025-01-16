@@ -36,15 +36,15 @@ export default function EditProductPage() {
             } else {
               console.error("Invalid product value:", value);
               alert("Invalid product data.");
-              router.push("/products/product");
+              router.push("/myshop");
             }
           } else {
             alert("Product not found");
-            router.push("/products/product");
+            router.push("/myshop");
           }
         } else {
           alert("No products available.");
-          router.push("/products/product");
+          router.push("/myshop");
         }
       } catch (error) {
         console.error("Error fetching product:", error);

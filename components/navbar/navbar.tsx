@@ -46,22 +46,17 @@ export default function NavbarComponent() {
   };
 
   return (
-    <Navbar
-      className="shadow-md sticky top-0 z-50 bg-white dark:bg-gray-900 transition duration-200"
-      fluid
-    >
+    <Navbar className="shadow-md sticky top-0 z-50 bg-white dark:bg-gray-900 transition-all duration-200" fluid>
       <NavbarBrand href="/" className="flex items-center gap-2">
         <img
           src="https://img.favpng.com/6/5/12/ecommerce-logo-png-favpng-c9XwFQHwsmZeVNHU6BRWQgabB.jpg"
-          className="mr-3 h-8 sm:h-10 rounded-full"
+          className="h-10 w-10 rounded-full"
           alt="Cambo Shop Logo"
         />
-        <span className="self-center text-2xl font-semibold dark:text-white">
-          Cambo Shop
-        </span>
+        <span className="text-2xl font-semibold text-gray-800 dark:text-white">Cambo Shop</span>
       </NavbarBrand>
 
-      <div className="flex md:order-2 gap-4 items-center">
+      <div className="flex md:order-2 items-center gap-4">
         {/* Cart Icon */}
         <div className="relative">
           <IoCart
@@ -69,7 +64,7 @@ export default function NavbarComponent() {
             className="text-3xl text-yellow-500 cursor-pointer hover:text-yellow-600 transition"
           />
           {cartCount > 0 && (
-            <span className="absolute top-[-8px] right-[-8px] bg-red-500 text-white text-xs rounded-full px-2">
+            <span className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-red-500 text-white text-xs rounded-full px-2">
               {cartCount}
             </span>
           )}
@@ -82,7 +77,7 @@ export default function NavbarComponent() {
             className="text-3xl text-pink-500 cursor-pointer hover:text-pink-600 transition"
           />
           {favoriteCount > 0 && (
-            <span className="absolute top-[-8px] right-[-8px] bg-red-500 text-white text-xs rounded-full px-2">
+            <span className="absolute top-0 right-0 translate-x-1/2 -translate-y-1/2 bg-red-500 text-white text-xs rounded-full px-2">
               {favoriteCount}
             </span>
           )}
@@ -93,33 +88,33 @@ export default function NavbarComponent() {
           {!userLoggedIn ? (
             <Button
               onClick={() => router.push("/login")}
-              className="bg-red-500"
+              className="bg-red-500 hover:bg-red-600"
               aria-label="Login Button"
             >
               Login
             </Button>
           ) : (
-            <div>
+            <div className="flex items-center gap-2">
               <Avatar
                 img={currentUser?.photoURL || "/default-avatar.jpg"}
                 alt={currentUser?.displayName || "User Avatar"}
                 rounded
               />
-              <span>{currentUser?.displayName}</span>
+              <span className="hidden md:block text-gray-700 dark:text-gray-300 text-sm font-medium">
+                {currentUser?.displayName}
+              </span>
             </div>
           )}
         </div>
 
-        <div className="ml-[10px]">
-          {userLoggedIn && (
-            <Button
-              onClick={handleLogout}
-              className="bg-orange-400"
-            >
-              Log out
-            </Button>
-          )}
-        </div>
+        {userLoggedIn && (
+          <Button
+            onClick={handleLogout}
+            className="hidden md:block bg-orange-400 hover:bg-orange-500 text-white"
+          >
+            Log out
+          </Button>
+        )}
 
         <NavbarToggle />
       </div>
@@ -130,13 +125,23 @@ export default function NavbarComponent() {
             key={key}
             as={Link}
             href={pro.path}
-            className={`px-5 py-2 rounded-md text-base font-medium ${
-              pro.path === pathName ? 'text-orange-500' : 'text-gray-600'
-            }`}
+            className={`px-5 py-2 rounded-md text-base font-medium transition ${
+              pro.path === pathName
+                ? 'text-orange-500 dark:text-orange-400'
+                : 'text-gray-600 dark:text-gray-300'
+            } hover:text-orange-500 hover:dark:text-orange-400`}
           >
             {pro.title}
           </NavbarLink>
         ))}
+        {userLoggedIn && (
+          <Button
+            onClick={handleLogout}
+            className="block md:hidden w-full bg-orange-400 hover:bg-orange-500 text-white mt-2"
+          >
+            Log out
+          </Button>
+        )}
       </NavbarCollapse>
     </Navbar>
   );

@@ -1,18 +1,15 @@
 import { configureStore } from "@reduxjs/toolkit";
 import couterSlice from "./feature/counter/couterSlice";
-import tokenSlice from "./feature/auth/authSlice";
 import cartSlice from "./feature/addToCart/cartSlice";
 import favoriteSlice from "./feature/addToFavorite/favoriteSlice";
-import userSlice from "./feature/userProfile/userSlice";
+
 
 // Create store
 export const makeStore = () => {
   return configureStore({
     reducer: {
       counter: couterSlice,
-      auth: tokenSlice,
       cart: cartSlice,
-      userProfile: userSlice,
       favorite: favoriteSlice,
     },
   });

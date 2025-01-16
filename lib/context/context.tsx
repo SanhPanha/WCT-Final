@@ -1,25 +1,29 @@
 'use client';
 import React, { useContext, useState, useEffect, ReactNode } from "react";
-import { onAuthStateChanged, GoogleAuthProvider } from "firebase/auth";
+import {
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  FacebookAuthProvider,
+} from "firebase/auth";
 import { auth } from "@/lib/firebase/firebaseConfiguration";
 import type { User } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import Loading from "@/app/loading";
+import dynamic from "next/dynamic";
 
-// Define the shape of the AuthContext value
+const Loading = dynamic(() => import("@/app/loading"));
+
 interface AuthContextType {
   userLoggedIn: boolean;
   isEmailUser: boolean;
   isGoogleUser: boolean;
+  isFacebookUser: boolean;
   currentUser: User | null;
   setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
-  logout: () => Promise<void>;
+  logout: (redirectTo?: string) => Promise<void>;
 }
 
-// Create the AuthContext with a default value of undefined
 const AuthContext = React.createContext<AuthContextType | undefined>(undefined);
 
-// Custom hook for accessing AuthContext
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
@@ -28,7 +32,6 @@ export function useAuth() {
   return context;
 }
 
-// Define props for the AuthProvider component
 interface AuthProviderProps {
   children: ReactNode;
 }
@@ -38,44 +41,59 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [userLoggedIn, setUserLoggedIn] = useState(false);
   const [isEmailUser, setIsEmailUser] = useState(false);
   const [isGoogleUser, setIsGoogleUser] = useState(false);
+  const [isFacebookUser, setIsFacebookUser] = useState(false);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setCurrentUser(user);
-        setIsEmailUser(
-          user.providerData.some(
-            (provider) => provider.providerId === "password"
-          )
-        );
-        setIsGoogleUser(
-          user.providerData.some(
-            (provider) => provider.providerId === GoogleAuthProvider.PROVIDER_ID
-          )
-        );
-        setUserLoggedIn(true);
-      } else {
-        setCurrentUser(null);
-        setUserLoggedIn(false);
-        setIsEmailUser(false);
-        setIsGoogleUser(false);
+      try {
+        if (user) {
+          setCurrentUser(user);
+          setIsEmailUser(
+            user.providerData.some(
+              (provider) => provider.providerId === "password"
+            )
+          );
+          setIsGoogleUser(
+            user.providerData.some(
+              (provider) =>
+                provider.providerId === GoogleAuthProvider.PROVIDER_ID
+            )
+          );
+          setIsFacebookUser(
+            user.providerData.some(
+              (provider) =>
+                provider.providerId === FacebookAuthProvider.PROVIDER_ID
+            )
+          );
+          setUserLoggedIn(true);
+        } else {
+          setCurrentUser(null);
+          setUserLoggedIn(false);
+          setIsEmailUser(false);
+          setIsGoogleUser(false);
+          setIsFacebookUser(false);
+        }
+      } catch (error) {
+        console.error("Error handling auth state change:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
-  const logout = async () => {
+  const logout = async (redirectTo = "/") => {
     try {
       await auth.signOut();
       setCurrentUser(null);
       setUserLoggedIn(false);
       setIsEmailUser(false);
       setIsGoogleUser(false);
-      router.push("/");
+      setIsFacebookUser(false);
+      router.push(redirectTo);
     } catch (error) {
       console.error("Error logging out:", error);
     }
@@ -85,6 +103,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     userLoggedIn,
     isEmailUser,
     isGoogleUser,
+    isFacebookUser,
     currentUser,
     setCurrentUser,
     logout,
@@ -92,13 +111,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading ? (
-        children
-      ) : (
-        <div>
-          <Loading />
-        </div>
-      )}
+      {!loading ? children : <Loading />}
     </AuthContext.Provider>
   );
 }

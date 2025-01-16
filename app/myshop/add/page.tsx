@@ -2,59 +2,42 @@
 
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { getDatabase, ref, update, get } from "firebase/database";
-import app from "@/lib/firebase/firebaseConfiguration";
 import style from "./style.module.css";
-import { CatageoryType } from "@/lib/constans";
+import { useRouter } from "next/navigation";
+import { CatageoryType, ProductType } from "@/lib/constans";
+import { getDatabase, ref, set, push, get } from "firebase/database";
+import app from "../../../lib/firebase/firebaseConfiguration";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/lib/context/context";
+import toast, { Toaster } from "react-hot-toast"; // Import toast
+
+const initialValues = {
+  slug: "",
+  category: "",
+  name: "",
+  desc: "",
+  image: "",
+  price: 0,
+  quantity: 0,
+  isHighLight: false,
+  isCheckOut: false,
+};
 
 const validationSchema = Yup.object().shape({
   category: Yup.string().required("Category is required"),
   name: Yup.string().required("Product Name is required"),
   desc: Yup.string().nullable(),
   price: Yup.number().required("Price is required"),
+  image: Yup.string().required("Image is required"),
 });
 
-
-interface ProductProps {
-  product: {
-    id: string; // Firebase key
-    slug: string;
-    desc: string;
-    name: string;
-    price: number;
-    image: string;
-    category: string;
-    seller: string;
-    quantity:number;
-    date?: string;
-    isHighLight?: boolean;
-    isCheckOut?: boolean;
-  };
-}
-
-export default function EditProduct({ product }: ProductProps) {
+export default function Product() {
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
   const [categories, setCategories] = useState<CatageoryType[]>([]);
+  const { currentUser } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const initialValues = {
-    slug: product.slug,
-    name: product.name,
-    desc: product.desc || "",
-    price: product.price,
-    category: product.category,
-    quantity: product.quantity,
-    seller: product.seller,
-    image: product.image,
-    date: product.date,
-    isHighLight: product.isHighLight,
-    isCheckOut: product.isCheckOut
-    
-  };
-
-
+  // Fetch categories from Firebase
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -69,10 +52,11 @@ export default function EditProduct({ product }: ProductProps) {
           }));
           setCategories(categoryList);
         } else {
-          console.error("No categories found.");
+          toast.error("No categories found.");
         }
       } catch (error) {
-        console.error("Error fetching categories:", error);
+        toast.error("Error fetching categories.");
+        console.error(error);
       }
     };
 
@@ -80,84 +64,69 @@ export default function EditProduct({ product }: ProductProps) {
   }, []);
 
   const handleSubmit = async (values: any) => {
-    if (!product.id) {
-      alert("Invalid product ID.");
-      return;
-    }
-  
     const db = getDatabase(app);
-    const productRef = ref(db, `products/${product.id}`);
-  
-    const updatedData = {
+    const productRef = push(ref(db, `products`));
+
+    const productData: ProductType = {
       slug: values.name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, ""),
-      desc: values.desc,
-      name: values.name,
-      price: values.price,
       category: values.category,
+      name: values.name,
+      desc: values.desc,
+      image: values.image, // Image file name, handle upload separately if needed
+      price: values.price,
       quantity: values.quantity,
-      seller: values.seller,
-      image: values.image,
-      date: values.date,
-      isHighLight: values.isHighLight,
-      isCheckOut: values.isCheckOut
+      isHighLight: false,
+      isCheckOut: false,
+      date: new Date().toISOString(),
+      seller: currentUser?.displayName || "Unknown Seller",
     };
-  
+
+    setIsLoading(true);
+
     try {
-      setIsLoading(true);
-      await update(productRef, updatedData);
-      alert("Product updated successfully!");
-      router.push("/products/product");
+      await set(productRef, productData);
+      toast.success("Product saved successfully!");
+      router.push("/myshop");
     } catch (error: any) {
-      alert(`Error updating product: ${error.message}`);
+      toast.error(`Error saving product: ${error.message}`);
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   return (
-    
+    <main className={style.container}>
+      <Toaster position="top-right" reverseOrder={false} />
       <Formik
         initialValues={initialValues}
         validationSchema={validationSchema}
         onSubmit={handleSubmit}
-        enableReinitialize
       >
-        {({ values, setFieldValue }) => {
-          const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-            const title = e.target.value;
-            setFieldValue("title", title);
-            setFieldValue(
-              "slug",
-              title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "")
-            );
-          };
-
-          return (
-            <Form className=" rounded-lg w-full container mx-auto bg-gray-100 p-10">
-            <div className="my-3 ">
+        {({ values, setFieldValue }) => (
+          <Form className="rounded-lg w-full container mx-auto bg-white shadow-lg p-10">
+            <div className="flex justify-between items-center mb-5">
               <button
                 type="button"
-                onClick={() => router.push(`/myshop`)}
-                className="bg-orange-400 text-lg font-medium hover:bg-orange-600 text-white px-6 rounded-lg"
+                onClick={() => router.push(`/products/product`)}
+                className="bg-orange-400 text-lg font-medium hover:bg-orange-600 text-white px-6 py-2 rounded-lg"
               >
                 Back
               </button>
-            </div>
-
-            <div className={style.title}>
-                <button
-                  type="button"
-                  className={`${style.title} text-2xl text-gray-800 font-bold`}
-                >
-                  Edit Product
-                </button>
+              <h2 className="text-2xl font-bold text-gray-800">Create Product</h2>
             </div>
 
             <div className="mb-5">
               <label htmlFor="slug" className={style.label}>
                 Product Slug
               </label>
-              <Field type="text" name="slug" id="slug" className={style.input} readOnly />
+              <Field
+                type="text"
+                name="slug"
+                id="slug"
+                className={style.input}
+                readOnly
+              />
             </div>
 
             <div className="mb-5">
@@ -169,6 +138,7 @@ export default function EditProduct({ product }: ProductProps) {
                 name="name"
                 id="name"
                 className={style.input}
+                placeholder="e.g., Fancy T-Shirt"
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const name = e.target.value;
                   setFieldValue("name", name);
@@ -201,7 +171,13 @@ export default function EditProduct({ product }: ProductProps) {
               <label htmlFor="desc" className={style.label}>
                 Product Description
               </label>
-              <Field as="textarea" name="desc" id="desc" className={style.input} />
+              <Field
+                as="textarea"
+                name="desc"
+                id="desc"
+                className={style.input}
+                placeholder="Write a short description"
+              />
               <ErrorMessage name="desc" component="div" className={style.error} />
             </div>
 
@@ -209,37 +185,51 @@ export default function EditProduct({ product }: ProductProps) {
               <label htmlFor="price" className={style.label}>
                 Product Price
               </label>
-              <Field type="number" name="price" id="price" className={style.input} />
+              <Field
+                type="number"
+                name="price"
+                id="price"
+                className={style.input}
+                placeholder="e.g., 49.99"
+              />
               <ErrorMessage name="price" component="div" className={style.error} />
             </div>
 
             <div className="mb-5">
               <label htmlFor="image" className={style.label}>
-                Product Image (Name only)
+                Product Image
               </label>
-              <Field type="text" name="image" id="image" className={style.input} />
+              <Field
+                type="text"
+                name="image"
+                id="image"
+                className={style.input}
+                placeholder="Image URL or file name"
+              />
               <ErrorMessage name="image" component="div" className={style.error} />
             </div>
 
-            <div className="mt-4">
-              <button
-                  type="submit"
-                  className="bg-blue-700 py-2 px-3 text-white rounded-lg"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Saving..." : "Save Changes"}
-                </button>
+            <div className="flex justify-end gap-3 mt-5">
               <button
                 type="button"
                 onClick={() => router.push(`/products/product`)}
-                className="bg-orange-600 text-white px-3 py-2 ml-2 rounded-lg"
+                className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
               >
                 Cancel
               </button>
+              <button
+                type="submit"
+                className={`bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-800 ${
+                  isLoading && "cursor-not-allowed opacity-50"
+                }`}
+                disabled={isLoading}
+              >
+                {isLoading ? "Saving..." : "Save Changes"}
+              </button>
             </div>
           </Form>
-          );
-        }}
+        )}
       </Formik>
+    </main>
   );
 }
