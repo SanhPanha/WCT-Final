@@ -7,7 +7,7 @@ module.exports = {
         'storage-asset.msi.com',
         'images.acer.com',
         'www.asus.com',
-        'p3-ofp.static.pub'
+        'p3-ofp.static.pub',
       ],
     },
   };

@@ -6,14 +6,24 @@ import { useAppDispatch } from "@/redux/hooks";
 import { addToCart } from "@/redux/feature/addToCart/cartSlice";
 import { addFavorite } from "@/redux/feature/addToFavorite/favoriteSlice";
 import { useAuth } from "@/lib/context/context";
+import { useRouter } from "next/navigation";
 
 export default function CardComponent(props: CartProductType) {
   const dispatch = useAppDispatch();
-  const { currentUser } = useAuth(); // Get the current user
+  const { currentUser, userLoggedIn } = useAuth(); // Get the current user
+  const router = useRouter()
   const placeHolderImage =
     "https://i0.wp.com/sunrisedaycamp.org/wp-content/uploads/2020/10/placeholder.png?ssl=1";
 
+    console.log("userLoggedIn", userLoggedIn)
+
   const handleAddToCart = () => {
+
+    if (userLoggedIn === false) {
+      router.push("/login"); // Redirect to login if the user is not logged in
+      return;
+    }
+
     if (currentUser) {
       dispatch(
         addToCart({
@@ -32,6 +42,10 @@ export default function CardComponent(props: CartProductType) {
   };
 
   const handleAddToFaourite = () => {
+    if (userLoggedIn === false) {
+      router.push("/login"); // Redirect to login if the user is not logged in
+      return;
+    }
     if (currentUser) {
       dispatch(
         addFavorite({

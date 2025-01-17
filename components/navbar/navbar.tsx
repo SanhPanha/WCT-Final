@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   Avatar,
@@ -8,15 +8,15 @@ import {
   NavbarCollapse,
   NavbarLink,
   NavbarToggle,
-} from 'flowbite-react';
-import { MenuList } from '@/components/navbar/menu';
-import { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import '@/app/globals.css';
-import { IoCart, IoHeart } from 'react-icons/io5';
-import { useAuth } from '@/lib/context/context';
-import { getDatabase, ref, onValue } from 'firebase/database';
+} from "flowbite-react";
+import { MenuList } from "@/components/navbar/menu";
+import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
+import "@/app/globals.css";
+import { IoCart, IoHeart } from "react-icons/io5";
+import { useAuth } from "@/lib/context/context";
+import { getDatabase, ref, onValue } from "firebase/database";
 
 type MenuItems = {
   title: string;
@@ -32,57 +32,40 @@ export default function NavbarComponent() {
   const [cartCount, setCartCount] = useState(0);
   const [favoriteCount, setFavoriteCount] = useState(0);
 
-
-  console.log("currentUser", currentUser);
-
   useEffect(() => {
     if (userLoggedIn && currentUser?.uid) {
       const db = getDatabase();
       const cartRef = ref(db, `carts/${currentUser.uid}`);
-  
-      // Listen for cart data changes
+
       const unsubscribeCart = onValue(cartRef, (snapshot) => {
-        if (snapshot.exists()) {
-          const data = snapshot.val();
-          // Count the number of unique products in the cart
-          const totalUniqueItems = Object.keys(data).length;
-  
-          // Update cart count only if it has changed to prevent unnecessary re-renders
-          setCartCount((prevCount) => {
-            if (prevCount !== totalUniqueItems) {
-              return totalUniqueItems;
-            }
-            return prevCount;
-          });
-        } else {
-          setCartCount(0);
-        }
+        setCartCount(snapshot.exists() ? Object.keys(snapshot.val()).length : 0);
       });
-  
-      // Optional: Fetch favorites count similarly
+
       const favoriteRef = ref(db, `favorites/${currentUser.uid}`);
       const unsubscribeFavorites = onValue(favoriteRef, (snapshot) => {
-        if (snapshot.exists()) {
-          setFavoriteCount(Object.keys(snapshot.val()).length);
-        } else {
-          setFavoriteCount(0);
-        }
+        setFavoriteCount(snapshot.exists() ? Object.keys(snapshot.val()).length : 0);
       });
-  
-      // Cleanup listeners on unmount
+
       return () => {
         unsubscribeCart();
         unsubscribeFavorites();
       };
     }
   }, [userLoggedIn, currentUser]);
-  
-  
+
+  const handleProtectedNavigation = (path: string) => {
+    if (!userLoggedIn) {
+      router.push("/login");
+    } else {
+      router.push(path);
+    }
+  };
 
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to log out?")) {
       logout();
     }
+    router.push('/')
   };
 
   return (
@@ -97,10 +80,9 @@ export default function NavbarComponent() {
       </NavbarBrand>
 
       <div className="flex md:order-2 items-center gap-4">
-        {/* Cart Icon */}
         <div className="relative">
           <IoCart
-            onClick={() => router.push(`/cart`)}
+            onClick={() => handleProtectedNavigation(`/cart`)}
             className="text-3xl text-yellow-500 cursor-pointer hover:text-yellow-600 transition"
           />
           {cartCount > 0 && (
@@ -110,10 +92,9 @@ export default function NavbarComponent() {
           )}
         </div>
 
-        {/* Favorite Icon */}
         <div className="relative">
           <IoHeart
-            onClick={() => router.push(`/favorite`)}
+            onClick={() => handleProtectedNavigation(`/favorite`)}
             className="text-3xl text-pink-500 cursor-pointer hover:text-pink-600 transition"
           />
           {favoriteCount > 0 && (
@@ -123,8 +104,7 @@ export default function NavbarComponent() {
           )}
         </div>
 
-         {/* Avatar and Authentication */}
-         <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
           {!userLoggedIn ? (
             <Button
               onClick={() => router.push("/login")}
@@ -141,13 +121,7 @@ export default function NavbarComponent() {
                 rounded
               />
               <span className="hidden md:block text-gray-700 dark:text-gray-300 text-sm font-medium">
-              {currentUser?.displayName ? (
-                currentUser.displayName
-              ) : (
-                currentUser?.email
-              )}
-
-               
+                {currentUser?.displayName || currentUser?.email}
               </span>
             </div>
           )}
@@ -173,8 +147,8 @@ export default function NavbarComponent() {
             href={pro.path}
             className={`px-5 py-2 rounded-md text-base font-medium transition ${
               pro.path === pathName
-                ? 'text-orange-500 dark:text-orange-400'
-                : 'text-gray-600 dark:text-gray-300'
+                ? "text-orange-500 dark:text-orange-400"
+                : "text-gray-600 dark:text-gray-300"
             } hover:text-orange-500 hover:dark:text-orange-400`}
           >
             {pro.title}

@@ -177,10 +177,6 @@ const Login = () => {
             </svg>
             {isSigningIn ? 'Signing In...' : 'Continue with Facebook'}
           </button>
-
-
-
-
       </div>
     </div>
   );

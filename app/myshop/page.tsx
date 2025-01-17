@@ -1,5 +1,4 @@
 'use client';
-import React, { useEffect, useState } from 'react';
 import { Button, Modal, Select, Popover } from 'flowbite-react';
 import DataTable, { TableColumn } from 'react-data-table-component';
 import { useRouter } from 'next/navigation';
@@ -10,6 +9,7 @@ import { SearchComponent } from '@/components/seach_button/searchButton';
 import { HiOutlineExclamationCircle } from 'react-icons/hi';
 import { CatageoryType, ProductType } from '@/lib/constans';
 import { useAuth } from '@/lib/context/context';
+import { useEffect, useState } from 'react';
 
 const placeHolderImage = 'https://via.placeholder.com/150';
 
@@ -24,8 +24,10 @@ export default function DashBoard() {
   const [productId, setProductId] = useState<string | null>(null);
   const [openDetailModal, setOpenDetailModal] = useState(false);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
-  const { currentUser } = useAuth();
+  const { currentUser, userLoggedIn } = useAuth();
   const [loading, setLoading] = useState(true);
+
+ 
 
   // Fetch products from Firebase
   useEffect(() => {
@@ -83,6 +85,12 @@ export default function DashBoard() {
     fetchCategories();
   }, []);
 
+  if (userLoggedIn === false) {
+    router.push("/login"); // Redirect to login if the user is not logged in
+    return;
+  }
+
+
   const handleHighlight = async (product: ProductType) => {
     if (!product.key) {
       alert("Invalid product ID.");
@@ -94,9 +102,31 @@ export default function DashBoard() {
 
     try {
       setLoading(true);
-      await update(productRef, { ...product, isCheckOut: true });
-      setProducts(prev => prev.map(p => (p.key === product.key ? { ...p, isCheckOut: true } : p)));
+      await update(productRef, { ...product, isHighLight: true });
+      setProducts(prev => prev.map(p => (p.key === product.key ? { ...p, isHighLight: true } : p)));
       alert("Product highlighted successfully!");
+    } catch (error) {
+      console.error("Error updating product:", error);
+      alert('Error updating product');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleNotHighlight = async (product: ProductType) => {
+    if (!product.key) {
+      alert("Invalid product ID.");
+      return;
+    }
+
+    const db = getDatabase(app);
+    const productRef = ref(db, `products/${product.key}`);
+
+    try {
+      setLoading(true);
+      await update(productRef, { ...product, isHighLight: false });
+      setProducts(prev => prev.map(p => (p.key === product.key ? { ...p, isHighLight: true } : p)));
+      alert("Product not highlighted successfully!");
     } catch (error) {
       console.error("Error updating product:", error);
       alert('Error updating product');
@@ -128,7 +158,7 @@ export default function DashBoard() {
     setHighlightFilter(selected);
 
     const filtered = products.filter(product => {
-      const isHighlighted = selected === 'true' ? product.isCheckOut : !product.isCheckOut;
+      const isHighlighted = selected === 'true' ? product.isHighLight : !product.isHighLight;
       return selected === '' || isHighlighted;
     });
 
@@ -161,26 +191,58 @@ export default function DashBoard() {
   };
 
   const columns: TableColumn<ProductType>[] = [
-    { name: 'Product Title', selector: row => row.name, sortable: true },
-    // { name: 'Seller', selector: row => row.seller, sortable: true },
-    // { name: 'Hightlight', selector: row => row.isHighLight ? 'Not Hightlight' : 'Hightlight', sortable: true },
+    { name: 'Product Title', selector: row =>( row.name), sortable: true },
     { name: 'Category', selector: row => row.category, sortable: true },
     { name: 'Price (USD)', selector: row => `$${row.price.toFixed(2)}`, sortable: true },
-    { name: 'Image', cell: row => <img className="w-[80px] h-[70px]" src={row.image || placeHolderImage} alt={row.name || 'Placeholder'} /> },
+    { 
+      name: 'Image', 
+      cell: row => (
+        <img 
+          className="w-[80px] h-[70px]" 
+          src={row.image || placeHolderImage} 
+          alt={row.name || 'Placeholder'} 
+        />
+      ) 
+    },
     {
       name: 'Action',
       cell: row => (
-      
-            <div className="flex flex-1  p-2 gap-2">
-              <Button size="sm" onClick={() => router.push(`/myshop/edit/${row.slug}`)}>Edit</Button>
-              <Button size="sm" onClick={() => handleHighlight(row)}>Highlight</Button>
-              <Button size="sm" onClick={() => { setProductDetail(row); setOpenDetailModal(true); }}>View</Button>
-              <Button size="sm" color="failure" onClick={() => { setProductId(row.slug); setOpenDeleteModal(true); }}>Delete</Button>
-            </div>
-      
+        <div className="flex flex-1 p-2 gap-2">
+          <Button size="sm"  className="whitespace-nowrap" onClick={() => router.push(`/myshop/edit/${row.slug}`)}>Edit</Button>
+          <Button 
+            size="sm" 
+            className="whitespace-nowrap"
+            onClick={() => row.isHighLight ? handleNotHighlight(row) : handleHighlight(row)}
+          >
+            {row.isHighLight ? 'Not Highlight' : 'Highlight'}
+          </Button>
+          <Button 
+            size="sm" 
+            className="whitespace-nowrap"
+            onClick={() => { 
+              setProductDetail(row); 
+              setOpenDetailModal(true); 
+            }}
+          >
+            View
+          </Button>
+          <Button 
+            size="sm" 
+            className="whitespace-nowrap"
+            color="failure" 
+            onClick={() => { 
+              setProductId(row.slug); 
+              setOpenDeleteModal(true); 
+            }}
+          >
+            Delete
+          </Button>
+        </div>
       )
     },
   ];
+  
+  
 
   return (
     <main className="p-6 sm:p-8 bg-gray-50 dark:bg-gray-900 ">

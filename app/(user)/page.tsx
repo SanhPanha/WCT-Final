@@ -1,7 +1,7 @@
 
 import HeroSectionComponent from "@/components/hero/HeroSectionComponent";
 import '@/app/globals.css';
-import CarouselComponent from "@/components/hero/courolsel";
+import CarouselComponent from "@/components/hero/courolsel-category";
 import SectionComponent from "@/components/section/section";
 import FeatureProduct from "@/components/productFeature/featureProduct";
 import HightlightProducts from "@/components/product/HightlightPoducts";

@@ -8,7 +8,6 @@ import { getDatabase, ref, get } from "firebase/database";
 
 export default function HightlightProducts() {
   const router = useRouter();
-  const [products, setProducts] = useState<ProductType[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<ProductType[]>([]);
 
   // Fetch products from Firebase
@@ -23,7 +22,6 @@ export default function HightlightProducts() {
           const highlightedProducts = data.filter(
             (product) => product.isHighLight === true
           ); // Only keep highlighted products
-          setProducts(highlightedProducts);
           setFilteredProducts(highlightedProducts); // Initialize filtered products
         } else {
           console.error("No products found.");
@@ -36,14 +34,6 @@ export default function HightlightProducts() {
     fetchData();
   }, []);
 
-  // Filter products by search term
-  const handleFilter = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const search = event.target.value.toLowerCase();
-    const filtered = products.filter((product) =>
-      product.name.toLowerCase().includes(search)
-    );
-    setFilteredProducts(filtered);
-  };
 
   return (
     <main className="flex flex-col gap-4 container mx-auto sm:px-6 lg:px-8">

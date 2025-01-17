@@ -5,6 +5,8 @@ import { FaCheck } from 'react-icons/fa';
 import { MdDelete } from 'react-icons/md';
 import { useAuth } from '@/lib/context/context';
 import { getDatabase, ref, onValue, remove, update } from 'firebase/database';
+import { ProductType } from '@/lib/constans';
+import app from '@/lib/firebase/firebaseConfiguration';
 
 export default function ProductView() {
   const { currentUser, userLoggedIn } = useAuth();
@@ -45,11 +47,45 @@ export default function ProductView() {
     }
   }, [userLoggedIn, currentUser]);
 
+  const handleCheckOut = async () => {
+    if (!cartItems.length) {
+      alert("Your cart is empty!");
+      return;
+    }
+  
+    const db = getDatabase(app);
+    const ordersRef = ref(db, `orders`);
+    const newOrders = cartItems.map((item) => ({
+      ...item,
+      orderId: `${item.id}-${Date.now()}`, // Generate a unique order ID
+      buyer: currentUser?.displayName || currentUser?.email,
+      createdAt: new Date().toISOString(),
+    }));
+  
+    try {
+      // Push new orders to Firebase
+      const updates: Record<string, any> = {};
+      newOrders.forEach((order) => {
+        updates[`${order.orderId}`] = order;
+      });
+      await update(ordersRef, updates);
+  
+      // Optionally, clear the cart after successful checkout
+      const cartRef = ref(db, `carts`);
+      await remove(cartRef);
+  
+      alert("Checkout successful! Your orders are now pending approval.");
+    } catch (error) {
+      console.error("Error during checkout:", error);
+      alert("Checkout failed. Please try again.");
+    }
+  };
+  
 
   const handleRemoveItem = async (itemId: string) => {
     setLoading(itemId);
     const db = getDatabase();
-    const itemRef = ref(db, `carts/${currentUser?.uid}/${itemId}`);
+    const itemRef = ref(db, `carts/${currentUser?.displayName}/${itemId}`);
 
     try {
       await remove(itemRef);
@@ -156,34 +192,45 @@ export default function ProductView() {
 
             {/* Order Summary */}
             <section
-              aria-labelledby="summary-heading"
-              className="h-[380px] lg:mt-0 lg:col-span-4 bg-white rounded-lg shadow p-6"
-            >
-              <h2 id="summary-heading" className="text-lg font-medium text-gray-900">
-                Order summary
-              </h2>
+                aria-labelledby="summary-heading"
+                className="h-[380px] lg:mt-0 lg:col-span-4 bg-white rounded-lg shadow p-6"
+              >
+                <h2 id="summary-heading" className="text-lg font-medium text-gray-900">
+                  Order summary
+                </h2>
 
-              <dl className="mt-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <dt className="text-sm text-gray-600">Items</dt>
-                  <dd className="text-sm font-medium text-gray-900">{cartItems.length}</dd>
-                </div>
-                <div className="flex items-center justify-between border-t border-gray-200 pt-4">
-                  <dt className="text-sm text-gray-600">Shipping estimate</dt>
-                  <dd className="text-sm font-medium text-gray-900">$5.00</dd>
-                </div>
-                <div className="flex items-center justify-between border-t border-gray-200 pt-4">
-                  <dt className="text-sm text-gray-600">Tax estimate</dt>
-                  <dd className="text-sm font-medium text-gray-900">$8.32</dd>
-                </div>
-                <div className="flex items-center justify-between border-t border-gray-200 pt-4">
-                  <dt className="text-base font-medium text-gray-900">Order total</dt>
-                  <dd className="text-base font-medium text-gray-900">
-                    ${totalPrice + 5.0 + 8.32}
-                  </dd>
-                </div>
-              </dl>
-            </section>
+                <dl className="mt-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <dt className="text-sm text-gray-600">Items</dt>
+                    <dd className="text-sm font-medium text-gray-900">{cartItems.length}</dd>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-gray-200 pt-4">
+                    <dt className="text-sm text-gray-600">Shipping estimate</dt>
+                    <dd className="text-sm font-medium text-gray-900">$5.00</dd>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-gray-200 pt-4">
+                    <dt className="text-sm text-gray-600">Tax estimate</dt>
+                    <dd className="text-sm font-medium text-gray-900">$8.32</dd>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-gray-200 pt-4">
+                    <dt className="text-base font-medium text-gray-900">Order total</dt>
+                    <dd className="text-base font-medium text-gray-900">
+                      ${(totalPrice + 5.0 + 8.32).toFixed(2)}
+                    </dd>
+                  </div>
+                </dl>
+
+                {/* Checkout Button */}
+                <button
+                  type="button"
+                  onClick={handleCheckOut}
+                  className="mt-6 w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md transition-all"
+                  disabled={cartItems.length === 0 || loading !== null}
+                >
+                  {loading ? 'Processing...' : 'Checkout'}
+                </button>
+              </section>
+
           </form>
         )}
       </div>

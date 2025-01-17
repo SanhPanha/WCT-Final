@@ -18,8 +18,8 @@ export type CatageoryType = {
     slug: string
 	title: string;
 	desc: string;
-	image?: string
-    key?: string; 
+	image: string
+    key: string; 
 }
     
 

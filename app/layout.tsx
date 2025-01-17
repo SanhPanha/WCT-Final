@@ -33,7 +33,7 @@ export default function RootLayout({
               <NavbarComponent/>
             </header>
 
-            <main className="bg-slate-50 flex-1">
+            <main className="bg-slate-50 flex-1 ">
               {children}
             </main>
               
