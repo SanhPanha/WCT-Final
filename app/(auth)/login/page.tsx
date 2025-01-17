@@ -52,20 +52,7 @@ const Login = () => {
     }
   };
 
-  const onFacebookSignIn = async (e: any) => {
-    e.preventDefault();
-    if (!isSigningIn) {
-      setIsSigningIn(true);
-      try {
-        await doSignInWithFacebook();
-        toast.success('Successfully signed in with Facebook!', { position: 'top-center' });
-        router.push('/'); // Navigate to the home page after Google sign-in
-      } catch (err) {
-        setErrorMessage('Facebook sign-in failed. Please try again.');
-        setIsSigningIn(false);
-      }
-    }
-  }
+
 
   // Redirect to home if user is already logged in
   useEffect(() => {

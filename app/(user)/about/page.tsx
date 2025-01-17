@@ -1,5 +1,4 @@
-import Feedback from '@/components/feedback/feedback';
-import CarouselComponent from '@/components/hero/courolsel'
+
 import { Metadata } from 'next';
 import Image from 'next/image';
 import React from 'react'
