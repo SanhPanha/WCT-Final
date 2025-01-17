@@ -71,7 +71,7 @@ const ProductDetail = async ({
   return (
     <div>
       <CardDetail
-        id={product.slug}
+        slug={product.slug}
         quantity={product.quantity}
         name={product.name}
         desc={product.desc}

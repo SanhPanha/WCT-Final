@@ -1,23 +1,85 @@
 'use client';
 
-import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { FaCheck } from 'react-icons/fa';
 import { MdDelete } from 'react-icons/md';
-import {
-  decrementQuantity,
-  incrementQuantity,
-  removeFromCart,
-  selectProducts,
-  selectTotalPrice,
-} from '@/redux/feature/addToCart/cartSlice';
-
-import { CartProductType } from '@/lib/constans';
+import { useAuth } from '@/lib/context/context';
+import { getDatabase, ref, onValue, remove, update } from 'firebase/database';
 
 export default function ProductView() {
-  const products = useAppSelector(selectProducts);
-  const totalPrice = useAppSelector(selectTotalPrice);
-  const dispatch = useAppDispatch();
+  const { currentUser, userLoggedIn } = useAuth();
+  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [totalPrice, setTotalPrice] = useState(0);
+ const [loading, setLoading] = useState<string | null>(null);
+
+
+  useEffect(() => {
+    if (userLoggedIn && currentUser?.uid) {
+      const db = getDatabase();
+      const cartRef = ref(db, `carts/${currentUser.uid}`);
+
+      // Listen for changes to the cart data in Firebase
+      const unsubscribeCart = onValue(cartRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const items = Object.entries(data).map(([key, value]: [string, any]) => ({
+            id: key,
+            ...value,
+          }));
+
+          setCartItems(items);
+
+          // Calculate total price
+          const total = items.reduce(
+            (sum, item) => sum + item.price * (item.quantity || 1),
+            0
+          );
+          setTotalPrice(total);
+        } else {
+          setCartItems([]);
+          setTotalPrice(0);
+        }
+      });
+
+      return () => unsubscribeCart();
+    }
+  }, [userLoggedIn, currentUser]);
+
+
+  const handleRemoveItem = async (itemId: string) => {
+    setLoading(itemId);
+    const db = getDatabase();
+    const itemRef = ref(db, `carts/${currentUser?.uid}/${itemId}`);
+
+    try {
+      await remove(itemRef);
+    } catch (error) {
+      console.error("Error removing item:", error);
+      // Optionally show an error message to the user
+    } finally {
+      setLoading(null);
+    }
+  };
+
+
+  const handleQuantityChange = async (itemId: string, delta: number) => {
+    const db = getDatabase();
+    const itemRef = ref(db, `carts/${currentUser?.uid}/${itemId}`);
+    const item = cartItems.find((item) => item.id === itemId);
+  
+    if (item) {
+      const newQuantity = Math.max(1, (item.quantity || 1) + delta);
+  
+      try {
+        await update(itemRef, { quantity: newQuantity });
+      } catch (error) {
+        console.error("Error updating quantity:", error);
+        // Optionally, handle the error (e.g., show a message to the user)
+      }
+    }
+  };
+  
+  
 
   return (
     <div className="bg-gray-100 min-h-screen">
@@ -26,7 +88,7 @@ export default function ProductView() {
           Shopping Cart
         </h1>
 
-        {products.length === 0 ? (
+        {cartItems.length === 0 ? (
           <div className="flex items-center justify-center h-96">
             <h2 className="text-2xl font-semibold text-gray-500">Your cart is empty</h2>
           </div>
@@ -34,38 +96,32 @@ export default function ProductView() {
           <form className="lg:grid lg:grid-cols-12 lg:gap-x-12 xl:gap-x-16">
             {/* Product List */}
             <section aria-labelledby="cart-heading" className="lg:col-span-8">
-              <h2 id="cart-heading" className="sr-only">
-                Items in your shopping cart
-              </h2>
-
               <ul role="list" className="divide-y divide-gray-200 bg-white rounded-lg shadow">
-                {products.map((product: CartProductType, index) => (
-                  <li key={index} className="flex py-6 sm:py-10 px-4">
+                {cartItems.map((item) => (
+                  <li key={item.id} className="flex py-6 sm:py-10 px-4">
                     <div className="flex-shrink-0">
                       <img
-                        src={product.image}
-                        alt={product.name || 'undefined'}
+                        src={item.image}
+                        alt={item.name || 'undefined'}
                         className="h-24 w-24 rounded-md object-cover sm:h-48 sm:w-48"
                       />
                     </div>
-
                     <div className="ml-4 flex flex-1 flex-col sm:ml-6">
                       <div className="flex justify-between">
-                        <h3 className="text-lg font-medium text-gray-800">{product.name}</h3>
+                        <h3 className="text-lg font-medium text-gray-800">{item.name}</h3>
                         <button
                           type="button"
                           className="text-red-500 hover:text-red-700"
-                          onClick={() => dispatch(removeFromCart({ id: product.id }))}
+                          onClick={() => handleRemoveItem(item.id)}
                         >
                           <MdDelete className="h-6 w-6" />
                         </button>
                       </div>
-
                       <div className="mt-4 flex items-center gap-4">
                         <div className="flex items-center border rounded-lg overflow-hidden">
                           <button
                             type="button"
-                            onClick={() => dispatch(decrementQuantity(product.id))}
+                            onClick={() => handleQuantityChange(item.id, -1)}
                             className="px-4 py-2 bg-gray-200 text-gray-700 hover:bg-gray-300 focus:outline-none"
                           >
                             -
@@ -73,23 +129,21 @@ export default function ProductView() {
                           <input
                             type="text"
                             readOnly
-                            value={product.quantity}
+                            value={item.quantity || 1}
                             className="w-12 text-center text-gray-900 bg-white border-x focus:outline-none"
                           />
                           <button
                             type="button"
-                            onClick={() => dispatch(incrementQuantity(product.id))}
+                            onClick={() => handleQuantityChange(item.id, 1)}
                             className="px-4 py-2 bg-gray-200 text-gray-700 hover:bg-gray-300 focus:outline-none"
                           >
                             +
                           </button>
                         </div>
-
                         <span className="text-lg font-semibold text-gray-800">
-                          ${product.quantity * product.price}
+                          ${item.quantity * item.price}
                         </span>
                       </div>
-
                       <p className="mt-4 flex items-center space-x-2 text-sm text-gray-700">
                         <FaCheck className="h-5 w-5 text-green-500" />
                         <span>In stock</span>
@@ -112,7 +166,7 @@ export default function ProductView() {
               <dl className="mt-6 space-y-4">
                 <div className="flex items-center justify-between">
                   <dt className="text-sm text-gray-600">Items</dt>
-                  <dd className="text-sm font-medium text-gray-900">{products.length}</dd>
+                  <dd className="text-sm font-medium text-gray-900">{cartItems.length}</dd>
                 </div>
                 <div className="flex items-center justify-between border-t border-gray-200 pt-4">
                   <dt className="text-sm text-gray-600">Shipping estimate</dt>
@@ -129,20 +183,10 @@ export default function ProductView() {
                   </dd>
                 </div>
               </dl>
-
-              <div className="mt-6">
-                <button
-                  type="button"
-                  className="w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 focus:outline-none"
-                  onClick={() => products.forEach((product) => dispatch(removeFromCart({ id: product.id })))}
-                >
-                  Check out
-                </button>
-              </div>
             </section>
           </form>
         )}
       </div>
     </div>
   );
-} 
+}

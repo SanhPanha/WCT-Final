@@ -5,11 +5,48 @@ import { Card } from "flowbite-react";
 import { useAppDispatch } from "@/redux/hooks";
 import { addToCart } from "@/redux/feature/addToCart/cartSlice";
 import { addFavorite } from "@/redux/feature/addToFavorite/favoriteSlice";
+import { useAuth } from "@/lib/context/context";
 
 export default function CardComponent(props: CartProductType) {
   const dispatch = useAppDispatch();
+  const { currentUser } = useAuth(); // Get the current user
   const placeHolderImage =
     "https://i0.wp.com/sunrisedaycamp.org/wp-content/uploads/2020/10/placeholder.png?ssl=1";
+
+  const handleAddToCart = () => {
+    if (currentUser) {
+      dispatch(
+        addToCart({
+          uid: currentUser.uid, // Pass the current user's UID to the action
+          product: {
+            slug: props.slug,
+            name: props.name,
+            image: props.image,
+            price: props.price,
+            desc: props.desc,
+            quantity: props.quantity,
+          },
+        })
+      );
+    }
+  };
+
+  const handleAddToFaourite = () => {
+    if (currentUser) {
+      dispatch(
+        addFavorite({
+          uid: currentUser.uid, // Pass the current user's UID to the action
+          product: {
+            slug: props.slug,
+            name: props.name,
+            image: props.image,
+            price: props.price,
+            desc: props.desc,
+          },
+        })
+      );
+    }
+  };
 
   return (
     <Card
@@ -39,35 +76,14 @@ export default function CardComponent(props: CartProductType) {
         <div className="flex items-center justify-between mt-2">
           <button
             className="flex-1 rounded-md bg-blue-500 px-3 py-2 text-sm font-medium text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 md:px-4 md:py-2"
-            onClick={() => {
-              dispatch(
-                addFavorite({
-                  id: props.id,
-                  name: props.name,
-                  image: props.image,
-                  price: props.price,
-                  desc: props.desc,
-                })
-              );
-            }}
+            onClick={handleAddToFaourite}
           >
             Favorite
           </button>
 
           <button
             className="ml-2 flex-1 rounded-md bg-yellow-500 px-3 py-2 text-sm font-medium text-white hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-yellow-300 dark:bg-yellow-600 dark:hover:bg-yellow-700 dark:focus:ring-yellow-800 md:px-4 md:py-2"
-            onClick={() => {
-              dispatch(
-                addToCart({
-                  id: props.id,
-                  name: props.name,
-                  image: props.image,
-                  price: props.price,
-                  desc: props.desc,
-                  quantity: props.quantity,
-                })
-              );
-            }}
+            onClick={handleAddToCart} // Use the function for adding to the cart
           >
             Add to Cart
           </button>

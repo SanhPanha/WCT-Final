@@ -25,7 +25,7 @@ export default function RootLayout({
 {
   return (
     <html lang="en">
-       <body className={` `}>
+       <body className={`flex flex-col`}>
         <AuthProvider>
           
           <StoreProvider>
@@ -33,7 +33,7 @@ export default function RootLayout({
               <NavbarComponent/>
             </header>
 
-            <main className="bg-slate-50 pb-9 ">
+            <main className="bg-slate-50 flex-1">
               {children}
             </main>
               

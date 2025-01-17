@@ -1,15 +1,63 @@
 'use client';
 
-import React from 'react';
-import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { FavoriteType } from '@/lib/constans';
-import { removeFavorite, selectFavorites } from '@/redux/feature/addToFavorite/favoriteSlice';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/context/context';
+import { getDatabase, onValue, ref, remove } from 'firebase/database';
 
 export default function FavoriteView() {
-    const router = useRouter();
-  const favorites = useAppSelector(selectFavorites);
-  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const { currentUser, userLoggedIn } = useAuth();
+  const [favouriteItems, setFavouriteItems] = useState<any[]>([]);
+ const [loading, setLoading] = useState<string | null>(null);
+
+
+  useEffect(() => {
+    if (userLoggedIn && currentUser?.uid) {
+      const db = getDatabase();
+      const cartRef = ref(db, `favorites/${currentUser.uid}`);
+
+      // Listen for changes to the cart data in Firebase
+      const unsubscribeCart = onValue(cartRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          const items = Object.entries(data).map(([key, value]: [string, any]) => ({
+            id: key,
+            ...value,
+          }));
+
+          setFavouriteItems(items);
+
+          // Calculate total price
+          const total = items.reduce(
+            (sum, item) => sum + item.price * (item.quantity || 1),
+            0
+          );
+        } else {
+          setFavouriteItems([]);
+        
+        }
+      });
+
+      return () => unsubscribeCart();
+    }
+  }, [userLoggedIn, currentUser]);
+
+  const handleRemoveItem = async (itemId: string) => {
+    setLoading(itemId);
+    const db = getDatabase();
+    const itemRef = ref(db, `favorites/${currentUser?.uid}/${itemId}`);
+
+    try {
+      await remove(itemRef);
+    } catch (error) {
+      console.error("Error removing item:", error);
+      // Optionally show an error message to the user
+    } finally {
+      setLoading(null);
+    }
+  };
+
   const placeHolderImage =
     'https://i0.wp.com/sunrisedaycamp.org/wp-content/uploads/2020/10/placeholder.png?ssl=1';
 
@@ -20,7 +68,7 @@ export default function FavoriteView() {
           Your Favorite Products
         </h1>
 
-        {favorites.length === 0 ? (
+        {favouriteItems.length === 0 ? (
           <div className="flex items-center justify-center h-96">
             <h2 className="text-2xl font-semibold text-gray-500">
               You have no favorite items yet.
@@ -28,10 +76,12 @@ export default function FavoriteView() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            {favorites.map((favorite: FavoriteType, index) => (
+            {favouriteItems.map((favorite) => (
               <div
-                onClick={() => router.push(`/product/${favorite.id}`)}
-                key={index}
+                onClick={(e) => {
+                  e.preventDefault();
+                  router.push(`/product/${favorite.slug}`)}}
+                key={favorite.id}
                 className="bg-white rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition duration-300"
               >
                 <img
@@ -53,7 +103,7 @@ export default function FavoriteView() {
                   </div>
                   <button
                     className="mt-4 w-full rounded-md bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300"
-                    onClick={() => dispatch(removeFavorite(favorite.id))}
+                    onClick={() => {handleRemoveItem(favorite.id)}}
                   >
                     Remove from Favorites
                   </button>

@@ -15,9 +15,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import '@/app/globals.css';
 import { IoCart, IoHeart } from 'react-icons/io5';
-import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { useAuth } from '@/lib/context/context';
-import { fetchCartData } from '@/redux/feature/addToCart/cartSlice';
+import { getDatabase, ref, onValue } from 'firebase/database';
 
 type MenuItems = {
   title: string;
@@ -26,18 +25,59 @@ type MenuItems = {
 };
 
 export default function NavbarComponent() {
-  const dispatch = useAppDispatch();
   const [menu] = useState<MenuItems[]>(MenuList);
   const router = useRouter();
   const pathName = usePathname();
-  const cartCount = useAppSelector((state) => state.cart.products.length);
-  const favoriteCount = useAppSelector((state) => state.favorite.favorites.length);
   const { currentUser, userLoggedIn, logout } = useAuth();
+  const [cartCount, setCartCount] = useState(0);
+  const [favoriteCount, setFavoriteCount] = useState(0);
+
+
+  console.log("currentUser", currentUser);
 
   useEffect(() => {
-    // Fetch cart data on component mount
-    dispatch(fetchCartData());
-  }, [dispatch]);
+    if (userLoggedIn && currentUser?.uid) {
+      const db = getDatabase();
+      const cartRef = ref(db, `carts/${currentUser.uid}`);
+  
+      // Listen for cart data changes
+      const unsubscribeCart = onValue(cartRef, (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          // Count the number of unique products in the cart
+          const totalUniqueItems = Object.keys(data).length;
+  
+          // Update cart count only if it has changed to prevent unnecessary re-renders
+          setCartCount((prevCount) => {
+            if (prevCount !== totalUniqueItems) {
+              return totalUniqueItems;
+            }
+            return prevCount;
+          });
+        } else {
+          setCartCount(0);
+        }
+      });
+  
+      // Optional: Fetch favorites count similarly
+      const favoriteRef = ref(db, `favorites/${currentUser.uid}`);
+      const unsubscribeFavorites = onValue(favoriteRef, (snapshot) => {
+        if (snapshot.exists()) {
+          setFavoriteCount(Object.keys(snapshot.val()).length);
+        } else {
+          setFavoriteCount(0);
+        }
+      });
+  
+      // Cleanup listeners on unmount
+      return () => {
+        unsubscribeCart();
+        unsubscribeFavorites();
+      };
+    }
+  }, [userLoggedIn, currentUser]);
+  
+  
 
   const handleLogout = () => {
     if (window.confirm("Are you sure you want to log out?")) {
@@ -83,8 +123,8 @@ export default function NavbarComponent() {
           )}
         </div>
 
-        {/* Avatar and Authentication */}
-        <div className="flex items-center gap-2">
+         {/* Avatar and Authentication */}
+         <div className="flex items-center gap-2">
           {!userLoggedIn ? (
             <Button
               onClick={() => router.push("/login")}
@@ -96,12 +136,18 @@ export default function NavbarComponent() {
           ) : (
             <div className="flex items-center gap-2">
               <Avatar
-                img={currentUser?.photoURL || "/default-avatar.jpg"}
+                img={currentUser?.photoURL || ""}
                 alt={currentUser?.displayName || "User Avatar"}
                 rounded
               />
               <span className="hidden md:block text-gray-700 dark:text-gray-300 text-sm font-medium">
-                {currentUser?.displayName}
+              {currentUser?.displayName ? (
+                currentUser.displayName
+              ) : (
+                currentUser?.email
+              )}
+
+               
               </span>
             </div>
           )}

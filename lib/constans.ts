@@ -39,7 +39,7 @@ export type CartProductType = {
 	image: string;
 	price: number;
     desc:string
-	id: string;
+	slug: string;
     quantity: number;
 	onClick?: () => void;
 };
@@ -49,6 +49,6 @@ export type FavoriteType = {
 	image: string;
 	price: number;
     desc:string
-	id: string;
+	slug: string;
 	onClick?: () => void;
 };

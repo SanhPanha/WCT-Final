@@ -120,7 +120,7 @@ export default function Products() {
             <CardComponent
               key={product.slug}
               quantity={product.quantity}
-              id={product.slug}
+              slug={product.slug}
               onClick={() => router.push(`/product/${product.slug}`)}
               name={product.name}
               price={product.price}
