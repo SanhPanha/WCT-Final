@@ -74,7 +74,7 @@ export default function Products() {
     setHighlightFilter(selected);
 
     const filtered = products.filter(product => {
-      const isHighlighted = selected === 'true' ? product.isCheckOut : !product.isCheckOut;
+      const isHighlighted = selected === 'true' ? product. isHighLight : !product. isHighLight;
       return selected === '' || isHighlighted;
     });
 
