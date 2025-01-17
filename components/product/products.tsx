@@ -41,7 +41,7 @@ function useFetch<T>(path: string): { data: T[]; loading: boolean; error: string
 
 export default function Products() {
   const router = useRouter();
-
+  const [highlightFilter, setHighlightFilter] = useState<string>('');
   // Fetch data using custom hook
   const { data: products, loading: productsLoading, error: productsError } = useFetch<ProductType>("products");
   const { data: categories, loading: categoriesLoading, error: categoriesError } = useFetch<CatageoryType>("categories");
@@ -67,6 +67,18 @@ export default function Products() {
 
   const handleCategoryFilter = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedCategory(event.target.value);
+  };
+
+  const handleHighlightFilter = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = event.target.value;
+    setHighlightFilter(selected);
+
+    const filtered = products.filter(product => {
+      const isHighlighted = selected === 'true' ? product.isCheckOut : !product.isCheckOut;
+      return selected === '' || isHighlighted;
+    });
+
+    setFilteredProducts(filtered);
   };
 
   const handleFilter = debounce((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -98,6 +110,13 @@ export default function Products() {
           />
         </div>
 
+        <div className="flex gap-2">
+        <Select id="hightlightFilter" value={highlightFilter} onChange={handleHighlightFilter} className="w-full sm:w-48 border border-gray-300 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <option value="">All Products</option>
+          <option value="true">Highlighted</option>
+          <option value="false">Not Highlighted</option>
+        </Select>
+
         <Select
           id="categoryFilter"
           value={selectedCategory}
@@ -111,6 +130,9 @@ export default function Products() {
             </option>
           ))}
         </Select>
+        </div>
+
+       
       </div>
 
       {/* Product Cards */}
